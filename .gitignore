@@ -2,3 +2,5 @@
 tmp/
 /path/to/folder/*.txt
 mavenv/
+**/__pycache__/
+
