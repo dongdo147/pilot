@@ -1,4 +1,4 @@
-A new competition is comming, a auto waypoint tracking ship will be released. Are you reader for a brand new technology device. Follow me!!
+A new competition is comming, a auto waypoint tracking ship will be released. Are you reader for a brand new technology device? Follow me!!
 Firt we need these component:
  1. Pixhawk (gps,compass,some supported module,...)
  2. Raspberry pi
