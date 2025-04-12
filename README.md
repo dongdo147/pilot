@@ -6,4 +6,5 @@ Firt we need these component:
  4. Marine device(sonar tranducer required!)
  5. Some cable like rs232, usb-c,...
  6. A smartest brain that can combine these things together
+
 Having all these things help us making a superr cool project ever.
