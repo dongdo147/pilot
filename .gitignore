@@ -1,0 +1,4 @@
+*.log
+tmp/
+/path/to/folder/*.txt
+mavenv/

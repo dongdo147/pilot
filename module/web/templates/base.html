@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trang của Ní{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+        <div class="text-xl font-bold text-blue-600">MÁP</div>
+        <div class="space-x-4">
+            <a href="/" class="text-gray-700 hover:text-blue-600">Trang chủ</a>
+            <a href="/dashboard" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- Nội dung chính -->
+    <main class="flex-grow p-6">
+        {% block content %}
+        <!-- Nội dung page sẽ render tại đây -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white text-center py-4 shadow-inner">
+        <p class="text-sm text-gray-500">© 2025 ní hảo ma 🤙</p>
+    </footer>
+
+</body>
+</html>

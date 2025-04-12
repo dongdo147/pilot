@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<h1 class="text-2xl font-bold mb-4 text-blue-600 flex items-center gap-2">
+    📡 Dữ liệu NMEA mới nhất
+</h1>
+
+<div id="nmea" class="bg-white rounded-xl shadow p-6 space-y-2 border border-gray-200">
+    <!-- Dữ liệu sẽ hiển thị ở đây -->
+</div>
+
+<script>
+async function fetchData() {
+    const res = await fetch('/data');
+    const { nmea_data, pixhawk_data } = await res.json();
+
+    let html = '';
+
+    for (let key in nmea_data) {
+        html += `
+        <div class="flex justify-between border-b border-gray-100 py-1">
+            <span class="font-medium text-gray-600">${key}</span>
+            <span class="text-right text-gray-800">${nmea_data[key]}</span>
+        </div>`;
+    }
+
+    for (let key in pixhawk_data) {
+        html += `
+        <div class="flex justify-between border-b border-gray-100 py-1">
+            <span class="font-medium text-gray-600">${key}</span>
+            <span class="text-right text-gray-800">${pixhawk_data[key]}</span>
+        </div>`;
+    }
+
+    document.getElementById('nmea').innerHTML = html;
+}
+
+setInterval(fetchData, 1000);  // cập nhật mỗi giây
+fetchData(); // lần đầu gọi
+</script>
+
+{% endblock %}
