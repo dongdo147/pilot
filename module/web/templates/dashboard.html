@@ -7,48 +7,36 @@
 <h1 class="text-2xl font-bold mb-4 text-blue-600 flex items-center gap-2">
     📡 Dữ liệu NMEA mới nhất
 </h1>
-<img id="camera-feed" src="/static/loading.gif" width="640" height="480" class="rounded-xl shadow-md border border-gray-300 mb-4"  />
-
 
 <div id="nmea" class="bg-white rounded-xl shadow p-6 space-y-2 border border-gray-200">
     <!-- Dữ liệu sẽ hiển thị ở đây -->
+
+   
+     
+</div>
+<img id="camera-feed" src="https://media3.giphy.com/media/uIJBFZoOaifHf52MER/200w.gif?cid=6c09b952gpm4z0cf460cxfjv2f7wjsa1oew0iyh2njy4dg4h&ep=v1_gifs_search&rid=200w.gif&ct=g" width="640" height="480" class="rounded-xl border border-gray-300 shadow" />
+ <!-- Đây là camera -->
+<h2 class="text-2xl font-semibold mb-4">📍 Quản Lý Waypoint</h2>
+
+<div id="waypoint-list" class="space-y-4">
+  <!-- Danh sách waypoint sẽ hiển thị ở đây -->
 </div>
 
-<script>
-function renderData(obj, title) {
-    let html = `<h2 class="text-lg font-semibold text-gray-700 mt-4">${title}</h2>`;
-    for (let key in obj) {
-        html += `
-        <div class="flex justify-between border-b border-gray-100 py-1">
-            <span class="font-medium text-gray-600">${key}</span>
-            <span class="text-right text-gray-800">${obj[key]}</span>
-        </div>`;
-    }
-    return html;
-}
-
-async function fetchData() {
-    const res = await fetch('/data');
-    const { nmea_data, pixhawk_data } = await res.json();
-
-    let html = '';
-    html += renderData(nmea_data, "📡 Dữ liệu NMEA");
-    html += renderData(pixhawk_data, "🛩️ Dữ liệu Pixhawk");
-
-    document.getElementById('nmea').innerHTML = html;
-}
-
-setInterval(() => {
-    fetch('/camera')
-    .then(res => res.json())
-    .then(data => {
-        if (data.image) {
-            document.getElementById("camera-feed").src = "data:image/jpeg;base64," + data.image;
-        }
-    });
-},500); // cập nhật mỗi 0.5s
-setInterval(fetchData, 1000);  // cập nhật mỗi giây
-fetchData(); // lần đầu gọi
-</script>
+<!-- Modal overlay -->
+<div id="waypoint-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden">
+    <!-- Modal content -->
+    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-2xl relative">
+      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl font-bold">
+        &times;
+      </button>
+      <h2 class="text-xl font-semibold mb-4">📍 Chi tiết Waypoint</h2>
+      <div id="waypoint-modal-content" class="space-y-4 max-h-[70vh] overflow-y-auto">
+        <!-- Nội dung sẽ được render ở đây -->
+      </div>
+    </div>
+  </div>
+  
+  
+<script src="../static/js/dashboard.js"></script>
 
 {% endblock %}

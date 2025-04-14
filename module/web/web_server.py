@@ -13,8 +13,8 @@ pixhawk_data = {}
 camera_frame = {}
 waypoints_data={}
 waypoint_folder = "module/web/waypoint"
-if not os.path.exists(waypoint_folder):
-    os.makedirs(waypoint_folder)
+for folder in ["module/web/waypoint", "log"]:
+    os.makedirs(folder, exist_ok=True)
 templates = Jinja2Templates(directory="module/web/templates")
 
 # -----------MẤY CÁI NÀY LÀ LIÊN QUAN TỚI LƯU  VÀ QUẢN LÝ WAYPOINTS-----------
@@ -22,7 +22,9 @@ templates = Jinja2Templates(directory="module/web/templates")
 #1 Nhận waypoint từ client
 app.mount("/static", StaticFiles(directory="module/web/static"), name="static")
 @app.post("/waypoint")
-async def save_waypoint(waypoints: list):
+async def receive_waypoints(request: Request):
+    data = await request.json()
+    waypoints = data.get("waypoints", [])
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"waypoint_{timestamp}.json"
     file_path = os.path.join(waypoint_folder, filename)
@@ -36,15 +38,26 @@ async def save_waypoint(waypoints: list):
     with open(file_path, 'w') as file:
         json.dump(metadata, file, indent=4)
 
-    with open("module/web/waypoint_log.txt", 'a') as log_file:
+    with open("log/waypoint_log.txt", 'a') as log_file:
         log_file.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã lưu {len(waypoints)} waypoint vào {filename}\n")
 
     return {"message": f"Đã lưu {len(waypoints)} waypoint vào {filename}"}
 #2 Xem danh sách các file json chứa waypoint
 @app.get("/waypoint-manager")
 async def waypoint_manager():
-    files = [f for f in os.listdir(waypoint_folder) if f.endswith('.json')]
-    return {"waypoints": files}
+    files_info = []
+    for f in os.listdir(waypoint_folder):
+        if f.endswith('.json'):
+            path = os.path.join(waypoint_folder, f)
+            try:
+                with open(path, 'r') as file:
+                    content = json.load(file)
+                    created_at = content.get("created_at", "unknown")
+            except:
+                created_at = "unknown"
+            files_info.append({"filename": f, "created_at": created_at})
+    return {"waypoints": files_info}
+
 #3 Hình như là xem chi tiết 1 file cụ thể á
 @app.get("/waypoint-manager/{filename}")
 async def view_waypoint(filename: str):
@@ -52,6 +65,7 @@ async def view_waypoint(filename: str):
     if os.path.exists(file_path):
         with open(file_path, 'r') as file:
             data = json.load(file)
+       
         return {"data": data}
     else:
         return {"error": "File không tồn tại"}
@@ -61,6 +75,8 @@ async def delete_waypoint(filename: str):
     file_path = os.path.join(waypoint_folder, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
+        with open("log/waypoint_log.txt", 'a') as log_file:
+            log_file.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã xóa file {filename}\n")
         return {"message": f"Đã xóa {filename}"}
     else:
         return {"error": "File không tồn tại"}
@@ -69,6 +85,8 @@ async def delete_waypoint(filename: str):
 async def download_waypoint(filename: str):
     file_path = os.path.join(waypoint_folder, filename)
     if os.path.exists(file_path):
+        with open("log/waypoint_log.txt", 'a') as log_file:
+            log_file.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã tải file {filename}\n")
         return FileResponse(file_path, media_type='application/json', filename=filename)
     else:
         return {"error": "File không tồn tại"}
