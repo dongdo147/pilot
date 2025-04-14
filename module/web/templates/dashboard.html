@@ -7,37 +7,46 @@
 <h1 class="text-2xl font-bold mb-4 text-blue-600 flex items-center gap-2">
     📡 Dữ liệu NMEA mới nhất
 </h1>
+<img id="camera-feed" src="/static/loading.gif" width="640" height="480" class="rounded-xl shadow-md border border-gray-300 mb-4"  />
+
 
 <div id="nmea" class="bg-white rounded-xl shadow p-6 space-y-2 border border-gray-200">
     <!-- Dữ liệu sẽ hiển thị ở đây -->
 </div>
 
 <script>
+function renderData(obj, title) {
+    let html = `<h2 class="text-lg font-semibold text-gray-700 mt-4">${title}</h2>`;
+    for (let key in obj) {
+        html += `
+        <div class="flex justify-between border-b border-gray-100 py-1">
+            <span class="font-medium text-gray-600">${key}</span>
+            <span class="text-right text-gray-800">${obj[key]}</span>
+        </div>`;
+    }
+    return html;
+}
+
 async function fetchData() {
     const res = await fetch('/data');
     const { nmea_data, pixhawk_data } = await res.json();
 
     let html = '';
-
-    for (let key in nmea_data) {
-        html += `
-        <div class="flex justify-between border-b border-gray-100 py-1">
-            <span class="font-medium text-gray-600">${key}</span>
-            <span class="text-right text-gray-800">${nmea_data[key]}</span>
-        </div>`;
-    }
-
-    for (let key in pixhawk_data) {
-        html += `
-        <div class="flex justify-between border-b border-gray-100 py-1">
-            <span class="font-medium text-gray-600">${key}</span>
-            <span class="text-right text-gray-800">${pixhawk_data[key]}</span>
-        </div>`;
-    }
+    html += renderData(nmea_data, "📡 Dữ liệu NMEA");
+    html += renderData(pixhawk_data, "🛩️ Dữ liệu Pixhawk");
 
     document.getElementById('nmea').innerHTML = html;
 }
 
+setInterval(() => {
+    fetch('/camera')
+    .then(res => res.json())
+    .then(data => {
+        if (data.image) {
+            document.getElementById("camera-feed").src = "data:image/jpeg;base64," + data.image;
+        }
+    });
+},500); // cập nhật mỗi 0.5s
 setInterval(fetchData, 1000);  // cập nhật mỗi giây
 fetchData(); // lần đầu gọi
 </script>

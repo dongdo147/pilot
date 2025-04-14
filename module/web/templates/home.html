@@ -144,6 +144,24 @@ function initWaypointDrawing() {
     }
 
     alert( JSON.stringify({ waypoints }));
+    try {
+  const res = await fetch('/waypoint', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ waypoints })
+  });
+
+  if (res.ok) {
+    alert("✅ Waypoint đã được gửi thành công!");
+  } else {
+    alert("❌ Gửi waypoint thất bại!");
+  }
+} catch (err) {
+  alert("⚠️ Lỗi khi gửi waypoint: " + err.message);
+}
+
   });
 }
 //---------- TÍNH KHOẢNG CÁCH ĐIỂM BẮT ĐẦU VÀ KẾT THÚC ------------
