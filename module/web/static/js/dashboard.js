@@ -121,10 +121,11 @@ setInterval(() => {
     fetch('/camera')
         .then(res => res.json())
         .then(data => {
+      
             if (data.image) {
                 document.getElementById("camera-feed").src = "data:image/jpeg;base64," + data.image;
-         
+              
             }
         });
-}, 500);
+}, 100);
 fetchWaypointList();

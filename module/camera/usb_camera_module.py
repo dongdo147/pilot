@@ -1,12 +1,11 @@
 import cv2
 
 class USBCamera:
-    def __init__(self, camera_index=0, width=640, height=480):
+    def __init__(self, camera_index=0, width=320, height=240):  # Giảm từ 640x480 xuống 320x240
         self.camera_index = camera_index
         self.width = width
         self.height = height
         self.cap = None
-
     def open(self):
         self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)  # Thêm CAP_V4L2 nếu dùng Linux
         if not self.cap.isOpened():

@@ -23,7 +23,7 @@ def pixhawk_loop():
             data = pixhawk_reader.read_data(master)
             if data:
                 handle_pixhawk_data(data)
-                print(data)
+          
     except Exception as e:
         print(f"💥 Lỗi trong Pixhawk loop: {e}")
 

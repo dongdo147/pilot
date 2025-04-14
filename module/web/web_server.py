@@ -106,6 +106,7 @@ def handle_nmea_data(data: dict):
 @app.get("/camera")
 def get_camera_frame():
     if "image" in camera_frame:
+  
         return JSONResponse(content={"image": camera_frame["image"]})
     else:
         return JSONResponse(content={"error": "No camera frame available"}, status_code=404)
