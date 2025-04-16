@@ -8,3 +8,4 @@ Firt we need these component:
  6. A smartest brain that can combine these things together
 
 Having all these things help us making a superr cool project ever.
+Không biết có làm được ko nhỉ :>
