@@ -95,5 +95,19 @@ def read_data(master):
             "type": "text",
             "text": data["text"]
         }
+    elif msg_type == "SERVO_OUTPUT_RAW":
+        pwm_dict = {}
+        for i in range(1, 17):
+            field = f"servo{i}_raw"
+            if field in data and data[field] > 0:
+                pwm_dict[f"ch{i}"] = data[field]
 
+        # Gửi toàn bộ pwm vào pixhawk_sending
+        from module.mavlink import pixhawk_sending
+        pixhawk_sending.set_pwm_channels(pwm_dict)
+
+        return {
+            "type": "pwm",
+            "pwm_outputs": pwm_dict
+        }
     return None

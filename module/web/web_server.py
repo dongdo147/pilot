@@ -5,7 +5,9 @@ from fastapi.staticfiles import StaticFiles
 import os
 import json
 import cv2
+from module.mavlink import pixhawk_sending
 from datetime import datetime
+from pydantic import BaseModel
 import base64
 app = FastAPI()
 nmea_data = {}
@@ -16,6 +18,12 @@ waypoint_folder = "module/web/waypoint"
 for folder in ["module/web/waypoint", "log"]:
     os.makedirs(folder, exist_ok=True)
 templates = Jinja2Templates(directory="module/web/templates")
+class PWMRequest(BaseModel):
+    channel: int
+    pwm: int
+    step: int = 10    # Mặc định là bước 10
+    delay: int = 50   # Mặc định là delay 50ms
+
 
 # -----------MẤY CÁI NÀY LÀ LIÊN QUAN TỚI LƯU  VÀ QUẢN LÝ WAYPOINTS-----------
 
@@ -98,6 +106,9 @@ async def home(request: Request):
 @app.get("/data")
 def get_data():
     return JSONResponse(content={"nmea_data":nmea_data,"pixhawk_data":pixhawk_data})
+@app.get("/control")
+async def control(request: Request):
+    return templates.TemplateResponse("control.html", {"request": request})
 @app.get("/dashboard")
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request,"nmea_data":nmea_data,"pixhawk_data":pixhawk_data})
@@ -123,4 +134,16 @@ def handle_camera_frame(frame):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+@app.post("/api/send_pwm")
+async def api_send_pwm(req: PWMRequest):
+    # Gọi hàm send_pwm với tất cả các tham số
+    success = await pixhawk_sending.send_pwm(req.channel, req.pwm, step=req.step, delay=req.delay)
+    
+    return {
+        "status": "ok" if success else "error",
+        "channel": req.channel,
+        "pwm": req.pwm,
+        "step": req.step,
+        "delay": req.delay
+    }
 

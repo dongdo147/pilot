@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Điều khiển{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold mb-4">🎮 Điều khiển tàu tự hành</h2>
+
+<div class="bg-white rounded-xl shadow-md p-6 max-w-xl mx-auto">
+    <!-- Kênh Servo -->
+    <label for="channel" class="block text-sm font-medium text-gray-700">Chọn kênh servo:</label>
+    <select id="channel" name="channel" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}">Kênh {{ i }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- Giá trị PWM (Slider) -->
+    <label for="pwm" class="block text-sm font-medium text-gray-700 mt-4">Giá trị PWM: <span id="pwm-value" class="font-bold text-blue-600">1500</span> µs</label>
+    <input type="range" id="pwm" name="pwm" min="800" max="2200" value="1500" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+
+    <!-- Step -->
+    <label for="step" class="block text-sm font-medium text-gray-700 mt-4">Số bước:</label>
+    <input type="number" id="step" name="step" value="10" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+
+    <!-- Delay -->
+    <label for="delay" class="block text-sm font-medium text-gray-700 mt-4">Delay mỗi bước (ms):</label>
+    <input type="number" id="delay" name="delay" value="50" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+
+    <!-- Nút Gửi -->
+    <button id="submit-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+        🚀 Gửi lệnh điều khiển
+    </button>
+
+    <!-- Kết quả -->
+    <p id="result-msg" class="mt-4 text-center text-sm font-medium text-gray-700"></p>
+</div>
+
+<script>
+    // Hiển thị giá trị slider PWM theo thời gian thực
+    const pwmSlider = document.getElementById("pwm");
+    const pwmValueDisplay = document.getElementById("pwm-value");
+    pwmSlider.addEventListener("input", function () {
+        pwmValueDisplay.textContent = pwmSlider.value;
+    });
+
+    // Gửi request khi nhấn nút
+    document.getElementById("submit-btn").addEventListener("click", async function () {
+        const channel = parseInt(document.getElementById("channel").value);
+        const pwm = parseInt(document.getElementById("pwm").value);
+        const step = parseInt(document.getElementById("step").value);
+        const delay = parseInt(document.getElementById("delay").value);
+
+        const response = await fetch("/api/send_pwm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channel, pwm, step, delay }),
+        });
+
+        const result = await response.json();
+        const resultMsg = document.getElementById("result-msg");
+        if (result.status === "ok") {
+            resultMsg.textContent = `✅ Đã gửi lệnh tới kênh ${result.channel} với PWM ${result.pwm}µs`;
+            resultMsg.classList.remove("text-red-600");
+            resultMsg.classList.add("text-green-600");
+        } else {
+            resultMsg.textContent = "❌ Gửi thất bại. Kiểm tra kết nối Pixhawk.";
+            resultMsg.classList.remove("text-green-600");
+            resultMsg.classList.add("text-red-600");
+        }
+    });
+</script>
+{% endblock %}
