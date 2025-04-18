@@ -89,15 +89,18 @@ async function deleteWaypoint(filename) {
     alert(data.message);
     fetchWaypointList();
 }
-// setInterval(() => {
-//     fetch('/camera')
-//         .then(res => res.json())
-//         .then(data => {
+setInterval(() => {
+    fetch('/camera')
+        .then(res => res.json())
+        .then(data => {
       
-//             if (data.image) {
-//                 document.getElementById("camera-feed").src = "data:image/jpeg;base64," + data.image;
+            if (data.image) {
+                document.getElementById("camera-feed").src = "data:image/jpeg;base64," + data.image;
               
-//             }
-//         });
-// }, 100);
-fetchWaypointList();
+            }
+        });
+}, 100);
+console.log("dong")
+document.addEventListener("DOMContentLoaded", () => {
+    fetchWaypointList();
+});

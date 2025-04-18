@@ -11,7 +11,9 @@ const formatNumber = (num, decimals = 2) => num != null ? Number(num).toFixed(de
 const toDegrees = (rad) => rad != null ? (rad * 180 / Math.PI).toFixed(2) : null;
 
 function renderAttitude(data) {
+  
     const { roll, pitch, yaw } = data;
+
     const rollDeg = toDegrees(roll);
     const pitchDeg = toDegrees(pitch);
     const yawDeg = toDegrees(yaw);
@@ -77,6 +79,8 @@ function renderBattery(data) {
                 <div class="flex justify-between">
                     <span class="font-medium text-gray-600">Voltage</span>
                     <span class="text-gray-800">${formatNumber(voltage)} V</span>
+                
+                    
                 </div>
                 <div class="flex justify-between">
                     <span class="font-medium text-gray-600">Current</span>
@@ -94,7 +98,8 @@ function renderBattery(data) {
 }
 
 function renderGPS(data) {
-    const { lat2, lon2, alt2, satellites, fix_type, timestamp } = data;
+    const { lat2, lon2, alt2, satellites, fix_type, timestamp, armed, mode } = data;
+
     return `
         <div class="bg-white rounded-xl shadow p-6 border border-gray-200">
             <h2 class="text-lg font-semibold text-gray-700 mb-4">📍 GPS</h2>
@@ -116,6 +121,14 @@ function renderGPS(data) {
                     <span class="text-gray-800">${satellites}</span>
                 </div>
                 <div class="flex justify-between">
+                    <span class="font-medium text-gray-600">Armed</span>
+                    <span class="text-gray-800">${armed}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium text-gray-600">Mode</span>
+                    <span class="text-gray-800">${mode}</span>
+                </div>
+                <div class="flex justify-between">
                     <span class="font-medium text-gray-600">Fix Type</span>
                     <span class="text-gray-800">${fix_type}</span>
                 </div>
@@ -124,9 +137,10 @@ function renderGPS(data) {
                     <span class="text-gray-800">${formatNumber(timestamp, 3)}</span>
                 </div>
             </div>
-        </div>`
-    ;
+        </div>
+    `;
 }
+
 
 function renderTextMessages(text) {
     return `
@@ -161,7 +175,9 @@ async function fetchData() {
             alt2: pixhawk_data.alt2,
             satellites: pixhawk_data.satellites,
             fix_type: pixhawk_data.fix_type,
-            timestamp: pixhawk_data.timestamp
+            timestamp: pixhawk_data.timestamp,
+            armed:pixhawk_data.armed,
+            mode:pixhawk_data.mode,
         };
         latestData.text = [pixhawk_data.text]; // Treat as single message
 

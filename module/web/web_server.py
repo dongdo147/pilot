@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse,FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi import HTTPException
 import os
 import json
 import cv2
@@ -23,6 +24,15 @@ class PWMRequest(BaseModel):
     pwm: int
     step: int = 10    # Mặc định là bước 10
     delay: int = 50   # Mặc định là delay 50ms
+class CustomCommandRequest(BaseModel):
+    command_id: int
+    param1: int = 0
+    param2: int = 0
+    param3: int = 0
+    param4: int = 0
+    param5: int = 0
+    param6: int = 0
+    param7: int = 0
 
 
 # -----------MẤY CÁI NÀY LÀ LIÊN QUAN TỚI LƯU  VÀ QUẢN LÝ WAYPOINTS-----------
@@ -146,4 +156,21 @@ async def api_send_pwm(req: PWMRequest):
         "step": req.step,
         "delay": req.delay
     }
+
+@app.post("/api/send_arm_command")
+async def api_send_arm_command():
+    success = await pixhawk_sending.send_arm_command()
+    return {
+        "status": "ok" if success else "error"
+    }
+@app.post("/api/send_custom_command")
+async def api_send_custom_command(command: CustomCommandRequest):
+    success = await pixhawk_sending.send_custom_command(
+        command.command_id, command.param1, command.param2, command.param3, 
+        command.param4, command.param5, command.param6, command.param7
+    )
+    return {
+        "status": "ok" if success else "error"
+    }
+
 

@@ -14,20 +14,28 @@
     </select>
 
     <!-- Giá trị PWM (Slider) -->
-    <label for="pwm" class="block text-sm font-medium text-gray-700 mt-4">Giá trị PWM: <span id="pwm-value" class="font-bold text-blue-600">1500</span> µs</label>
-    <input type="range" id="pwm" name="pwm" min="800" max="2200" value="1500" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+    <label for="pwm" class="block text-sm font-medium text-gray-700 mt-4">
+        Giá trị PWM: <span id="pwm-value" class="font-bold text-blue-600">1500</span> µs
+    </label>
+    <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
 
     <!-- Step -->
     <label for="step" class="block text-sm font-medium text-gray-700 mt-4">Số bước:</label>
-    <input type="number" id="step" name="step" value="10" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+    <input type="number" id="step" value="10" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
 
     <!-- Delay -->
     <label for="delay" class="block text-sm font-medium text-gray-700 mt-4">Delay mỗi bước (ms):</label>
-    <input type="number" id="delay" name="delay" value="50" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+    <input type="number" id="delay" value="50" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
 
     <!-- Nút Gửi -->
     <button id="submit-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
         🚀 Gửi lệnh điều khiển
+    </button>
+    <button id="armed-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+        🚀 Gửi lệnh ARM
+    </button>
+    <button id="reboot-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
+        🚀 Gửi lệnh reboot
     </button>
 
     <!-- Kết quả -->
@@ -35,36 +43,76 @@
 </div>
 
 <script>
-    // Hiển thị giá trị slider PWM theo thời gian thực
     const pwmSlider = document.getElementById("pwm");
     const pwmValueDisplay = document.getElementById("pwm-value");
-    pwmSlider.addEventListener("input", function () {
+    const resultMsg = document.getElementById("result-msg");
+
+    pwmSlider.addEventListener("input", () => {
         pwmValueDisplay.textContent = pwmSlider.value;
     });
 
-    // Gửi request khi nhấn nút
-    document.getElementById("submit-btn").addEventListener("click", async function () {
-        const channel = parseInt(document.getElementById("channel").value);
-        const pwm = parseInt(document.getElementById("pwm").value);
-        const step = parseInt(document.getElementById("step").value);
-        const delay = parseInt(document.getElementById("delay").value);
+    function showResult(success, message) {
+        resultMsg.textContent = message;
+        resultMsg.classList.toggle("text-green-600", success);
+        resultMsg.classList.toggle("text-red-600", !success);
+    }
 
-        const response = await fetch("/api/send_pwm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ channel, pwm, step, delay }),
+    async function postCommand(url, payload) {
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            return await res.json();
+        } catch {
+            return { status: "error" };
+        }
+    }
+
+    document.getElementById("submit-btn").addEventListener("click", async () => {
+        const data = {
+            channel: +document.getElementById("channel").value,
+            pwm: +pwmSlider.value,
+            step: +document.getElementById("step").value,
+            delay: +document.getElementById("delay").value,
+        };
+        const result = await postCommand("/api/send_pwm", data);
+        if (result.status === "ok") {
+            showResult(true, `✅ Đã gửi lệnh tới kênh ${result.channel} với PWM ${result.pwm}µs`);
+        } else {
+            showResult(false, "❌ Gửi thất bại. Kiểm tra kết nối Pixhawk.");
+        }
+    });
+
+    let isArmed = false;
+
+    document.getElementById("armed-btn").addEventListener("click", async () => {
+        const result = await postCommand("/api/send_custom_command", {
+            command_id: 400,
+            param1: isArmed ? 0 : 1
         });
 
-        const result = await response.json();
-        const resultMsg = document.getElementById("result-msg");
+        const btn = document.getElementById("armed-btn");
         if (result.status === "ok") {
-            resultMsg.textContent = `✅ Đã gửi lệnh tới kênh ${result.channel} với PWM ${result.pwm}µs`;
-            resultMsg.classList.remove("text-red-600");
-            resultMsg.classList.add("text-green-600");
+            isArmed = !isArmed;
+            btn.textContent = isArmed ? "🛑 Gửi lệnh DISARM" : "🚀 Gửi lệnh ARM";
+            showResult(true, `✅ Đã gửi lệnh ${isArmed ? "ARM" : "DISARM"} thành công.`);
         } else {
-            resultMsg.textContent = "❌ Gửi thất bại. Kiểm tra kết nối Pixhawk.";
-            resultMsg.classList.remove("text-green-600");
-            resultMsg.classList.add("text-red-600");
+            showResult(false, "❌ Gửi lệnh ARM/DISARM thất bại. Kiểm tra kết nối Pixhawk.");
+        }
+    });
+
+    document.getElementById("reboot-btn").addEventListener("click", async () => {
+        const result = await postCommand("/api/send_custom_command", {
+            command_id: 246,
+            param1: 1
+        });
+
+        if (result.status === "ok") {
+            showResult(true, "✅ Lệnh reboot đã được gửi thành công.");
+        } else {
+            showResult(false, "❌ Gửi lệnh reboot thất bại. Kiểm tra kết nối Pixhawk.");
         }
     });
 </script>

@@ -77,12 +77,6 @@ def read_data(master):
         }
 
     elif msg_type == "SYS_STATUS":
-        print({
-          "voltage": data["voltage_battery"] / 1000.0,
-            "current": data["current_battery"] / 100.0,
-            "remaining": data.get("battery_remaining")
-      
-        })
         return {
             "type": "battery",
             "voltage": data["voltage_battery"] / 1000.0,
@@ -110,4 +104,14 @@ def read_data(master):
             "type": "pwm",
             "pwm_outputs": pwm_dict
         }
+    elif msg_type == "HEARTBEAT":
+    # Kiểm tra xem drone đã được armed chưa
+        is_armed = (data["base_mode"] & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) != 0
+        
+        return {
+            "type": "heartbeat",
+            "armed": is_armed,
+            "mode": data["custom_mode"]
+        }
+
     return None

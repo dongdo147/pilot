@@ -56,37 +56,70 @@ async def send_pwm(channel, pwm_value, step=10, delay=50):
 
     print(f"✅ Gửi PWM {pwm_value} µs thành công tới kênh {channel}")
     return True
+async def send_custom_command(command_id, param1=0, param2=0, param3=0, param4=0, param5=0, param6=0, param7=0):
+    global pixhawk_master
 
-def send_custom_command(master, command_id, param1=0, param2=0, param3=0, param4=0, param5=0, param6=0, param7=0):
-    if master is None:
+    if pixhawk_master is None:
         print("❌ Pixhawk chưa kết nối, không gửi được lệnh.")
-        return
+        return False
 
-    master.mav.command_long_send(
-        master.target_system,
-        master.target_component,
-        command_id,  # ID của lệnh (tùy mình, ví dụ: 30001)
-        0,           # Confirmation
-        param1,
-        param2,
-        param3,
-        param4,
-        param5,
-        param6,
-        param7
+    # Debug: In ra các giá trị tham số được nhận
+    print(f"🌟 Gửi lệnh: command_id={command_id}, param1={param1}, param2={param2}, param3={param3}, param4={param4}, param5={param5}, param6={param6}, param7={param7}")
+
+    try:
+        # Gửi lệnh yêu cầu reboot
+        pixhawk_master.mav.command_long_send(
+            pixhawk_master.target_system,
+            pixhawk_master.target_component,
+            command_id,
+            1,  # Confirmation yêu cầu xác nhận
+            param1,
+            param2,
+            param3,
+            param4,
+            param5,
+            param6,
+            param7
+        )
+
+      
+        return True
+      
+    except Exception as e:
+        # Debug: In ra lỗi nếu có
+        print(f"❌ Lỗi khi gửi lệnh: {e}")
+        return False
+
+async def send_arm_command():
+    global pixhawk_master
+    if pixhawk_master is None:
+        print("❌ Chưa có kết nối Pixhawk để gửi lệnh")
+        return False
+
+    # Chuyển sang chế độ MANUAL trước khi arm 
+    mode = 'MANUAL'
+    try:
+        mode_id = pixhawk_master.mode_mapping()[mode]
+    except Exception as e:
+        print(f"❌ Không lấy được mode_id cho {mode}: {e}")
+        return False
+
+    pixhawk_master.mav.set_mode_send(
+        pixhawk_master.target_system,
+        mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
+        mode_id
     )
 
+    # Gửi lệnh ARM
+    pixhawk_master.mav.command_long_send(
+        pixhawk_master.target_system, pixhawk_master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,  # confirmation
+        1, 0, 0, 0, 0, 0, 0  # 1 = arm, 0 = disarm
+    )
 
-
-
-def send_text_to_gcs(master, text, severity=6):
-    """
-    Gửi đoạn text lên GCS như Mission Planner hoặc QGroundControl (hoặc Lua script sẽ thấy).
-    Severity từ 0 (EMERG) đến 6 (INFO)
-    """
-    if master is None:
-        print("❌ Không có kết nối để gửi text.")
-        return
-
-    master.mav.statustext_send(severity, text.encode())
+    # Đợi phản hồi ACK
+    ack = pixhawk_master.recv_match(type='COMMAND_ACK', blocking=True)
+    print("✅ ARM ACK:", ack)
+    return True
 
