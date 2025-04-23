@@ -28,6 +28,7 @@ def send_pwm(channel, pwm_value, step=10, delay=50):
         return False
 
     current_pwm = get_pwm_channel(channel)
+
     if current_pwm is None:
         print(f"⚠️ Không có giá trị PWM hiện tại cho kênh {channel}, dùng mặc định 1500")
         current_pwm = 1500
