@@ -86,6 +86,10 @@ async function deleteWaypoint(filename) {
     alert(data.message);
     fetchWaypointList();
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> db612be01aea85de6cef57e8917b4cd8ac90e3ac
 setInterval(() => {
     fetch('/camera')
         .then(res => res.json())
@@ -99,4 +103,8 @@ setInterval(() => {
 console.log("dong");
 document.addEventListener("DOMContentLoaded", () => {
     fetchWaypointList();
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> db612be01aea85de6cef57e8917b4cd8ac90e3ac
