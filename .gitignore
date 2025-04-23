@@ -5,4 +5,4 @@ mavenv/
 **/__pycache__/
 log/
 module/web/waypoint/
-
+.env

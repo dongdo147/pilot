@@ -1,45 +1,57 @@
 {% extends "base.html" %}
+
 {% block title %}Điều khiển{% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold mb-4">🎮 Điều khiển tàu tự hành</h2>
+<!-- Liên kết file CSS riêng cho trang điều khiển -->
+<link rel="stylesheet" href="../static/css/control.css">
 
-<div class="bg-white rounded-xl shadow-md p-6 max-w-xl mx-auto">
+<h2 class="section-title">🎮 Điều khiển tàu tự hành</h2>
+
+<div class="control-container">
     <!-- Kênh Servo -->
-    <label for="channel" class="block text-sm font-medium text-gray-700">Chọn kênh servo:</label>
-    <select id="channel" name="channel" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+    <label for="channel" class="input-label">Chọn kênh servo:</label>
+    <select id="channel" name="channel" class="input-select">
         {% for i in range(1, 13) %}
         <option value="{{ i }}">Kênh {{ i }}</option>
         {% endfor %}
     </select>
 
     <!-- Giá trị PWM (Slider) -->
-    <label for="pwm" class="block text-sm font-medium text-gray-700 mt-4">
-        Giá trị PWM: <span id="pwm-value" class="font-bold text-blue-600">1500</span> µs
+    <label for="pwm" class="input-label">
+        Giá trị PWM: <span id="pwm-value" class="pwm-value">1500</span> µs
     </label>
-    <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+    <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="pwm-slider">
 
-    <!-- Step -->
-    <label for="step" class="block text-sm font-medium text-gray-700 mt-4">Số bước:</label>
-    <input type="number" id="step" value="10" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+    <!-- Step và Delay -->
+    <div class="input-grid">
+        <div>
+            <label for="step" class="input-label">Số bước:</label>
+            <input type="number" id="step" value="10" min="1" class="input-number">
+        </div>
+        <div>
+            <label for="delay" class="input-label">Delay mỗi bước (ms):</label>
+            <input type="number" id="delay" value="50" min="1" class="input-number">
+        </div>
+    </div>
 
-    <!-- Delay -->
-    <label for="delay" class="block text-sm font-medium text-gray-700 mt-4">Delay mỗi bước (ms):</label>
-    <input type="number" id="delay" value="50" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+    <!-- Chọn lệnh cần gửi -->
+    <label for="command" class="input-label">Chọn lệnh cần gửi:</label>
+    <select id="command" name="command" class="input-select">
+        <option value="send_pwm">Gửi lệnh điều khiển PWM</option>
+        <option value="armed">Gửi lệnh ARM</option>
+        <option value="disarmed">Gửi lệnh DISARM</option>
+        <option value="reboot">Gửi lệnh reboot</option>
+        <option value="set_param_safety">Tắt BRD_SAFETYENABLE</option>
+    </select>
 
     <!-- Nút Gửi -->
-    <button id="submit-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
-        🚀 Gửi lệnh điều khiển
-    </button>
-    <button id="armed-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
-        🚀 Gửi lệnh ARM
-    </button>
-    <button id="reboot-btn" class="mt-6 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
-        🚀 Gửi lệnh reboot
+    <button id="submit-btn" class="btn btn-submit">
+        🚀 Gửi lệnh
     </button>
 
     <!-- Kết quả -->
-    <p id="result-msg" class="mt-4 text-center text-sm font-medium text-gray-700"></p>
+    <p id="result-msg" class="result-message"></p>
 </div>
 
 <script>
@@ -53,8 +65,8 @@
 
     function showResult(success, message) {
         resultMsg.textContent = message;
-        resultMsg.classList.toggle("text-green-600", success);
-        resultMsg.classList.toggle("text-red-600", !success);
+        resultMsg.classList.toggle("text-success", success);
+        resultMsg.classList.toggle("text-error", !success);
     }
 
     async function postCommand(url, payload) {
@@ -71,48 +83,48 @@
     }
 
     document.getElementById("submit-btn").addEventListener("click", async () => {
-        const data = {
-            channel: +document.getElementById("channel").value,
-            pwm: +pwmSlider.value,
-            step: +document.getElementById("step").value,
-            delay: +document.getElementById("delay").value,
-        };
-        const result = await postCommand("/api/send_pwm", data);
-        if (result.status === "ok") {
-            showResult(true, `✅ Đã gửi lệnh tới kênh ${result.channel} với PWM ${result.pwm}µs`);
-        } else {
-            showResult(false, "❌ Gửi thất bại. Kiểm tra kết nối Pixhawk.");
+        const command = document.getElementById("command").value;
+        let payload;
+        let url;
+
+        switch (command) {
+            case "send_pwm":
+                payload = {
+                    channel: +document.getElementById("channel").value,
+                    pwm: +pwmSlider.value,
+                    step: +document.getElementById("step").value,
+                    delay: +document.getElementById("delay").value,
+                };
+                url = "/api/send_pwm";
+                break;
+            case "armed":
+                payload = { command_id: 400, param1: 1 };
+                url = "/api/send_custom_command";
+                break;
+            case "disarmed":
+                payload = { command_id: 400, param1: 0 };
+                url = "/api/send_custom_command";
+                break;
+            case "reboot":
+                payload = { command_id: 246, param1: 1 };
+                url = "/api/send_custom_command";
+                break;
+            case "set_param_safety":
+                payload = {
+                    param_id: "BRD_SAFETYENABLE",
+                    param_value: 0
+                };
+                url = "/api/set_param";
+                break;
+            default:
+                break;
         }
-    });
 
-    let isArmed = false;
-
-    document.getElementById("armed-btn").addEventListener("click", async () => {
-        const result = await postCommand("/api/send_custom_command", {
-            command_id: 400,
-            param1: isArmed ? 0 : 1
-        });
-
-        const btn = document.getElementById("armed-btn");
+        const result = await postCommand(url, payload);
         if (result.status === "ok") {
-            isArmed = !isArmed;
-            btn.textContent = isArmed ? "🛑 Gửi lệnh DISARM" : "🚀 Gửi lệnh ARM";
-            showResult(true, `✅ Đã gửi lệnh ${isArmed ? "ARM" : "DISARM"} thành công.`);
+            showResult(true, `✅ Lệnh ${command} đã được gửi thành công.`);
         } else {
-            showResult(false, "❌ Gửi lệnh ARM/DISARM thất bại. Kiểm tra kết nối Pixhawk.");
-        }
-    });
-
-    document.getElementById("reboot-btn").addEventListener("click", async () => {
-        const result = await postCommand("/api/send_custom_command", {
-            command_id: 246,
-            param1: 1
-        });
-
-        if (result.status === "ok") {
-            showResult(true, "✅ Lệnh reboot đã được gửi thành công.");
-        } else {
-            showResult(false, "❌ Gửi lệnh reboot thất bại. Kiểm tra kết nối Pixhawk.");
+            showResult(false, "❌ Gửi lệnh thất bại. Kiểm tra kết nối Pixhawk.");
         }
     });
 </script>

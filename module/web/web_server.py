@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse,FileResponse
+from fastapi.responses import  JSONResponse,FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi import HTTPException
+
 import os
 import json
 import cv2
@@ -10,6 +10,19 @@ from module.mavlink import pixhawk_sending
 from datetime import datetime
 from pydantic import BaseModel
 import base64
+
+from dotenv import load_dotenv
+from pymongo import MongoClient
+
+load_dotenv()
+mongo_uri = os.getenv("MONGO_URI")
+database_name = os.getenv("DATABASE_NAME")
+
+client = MongoClient(mongo_uri)
+db = client[database_name]
+collection = db["data"]
+
+
 app = FastAPI()
 nmea_data = {}
 pixhawk_data = {}
@@ -122,32 +135,95 @@ async def control(request: Request):
 @app.get("/dashboard")
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request,"nmea_data":nmea_data,"pixhawk_data":pixhawk_data})
-def handle_nmea_data(data: dict):
-    nmea_data.update(data)
+
 @app.get("/camera")
 def get_camera_frame():
     if "image" in camera_frame:
-  
         return JSONResponse(content={"image": camera_frame["image"]})
     else:
         return JSONResponse(content={"error": "No camera frame available"}, status_code=404)
-
+def handle_nmea_data(data: dict):
+    nmea_data.update(data)
+    if not data:
+        return
+    collection.update_one({"name": "firstboat"}, {"$set": {"nmea_data":data}}, upsert=True)
 def handle_pixhawk_data(data: dict):
+    data2={}
     pixhawk_data.update(data)
+    data_type = data.get("type")
+    if not data_type:
+        return
+    data2[data_type] = {k: v for k, v in data.items() if k != "type"}
+    # Cập nhật riêng phần đó lên MongoDB
+
+    collection.update_one(
+        {"name": "firstboat"},
+        {f"$set": {f"pixhawk_data.{data_type}": data2[data_type]}},
+        upsert=True
+    )
+
 def handle_camera_frame(frame):
-    # Chuyển frame (numpy.ndarray) thành ảnh JPEG encode
     ret, buffer = cv2.imencode('.jpg', frame)
     if not ret:
         return
     jpg_as_text = base64.b64encode(buffer).decode('utf-8')
     camera_frame["image"] = jpg_as_text
+    if not camera_frame:
+        return
+    collection.update_one({"name": "firstboat"}, {"$set": {"camera_frame":camera_frame}}, upsert=True)
+def handle_get_command():
+    data =  db["command"].find_one({"name": "firstboat"})
+    command = data.get("command") if data else None
+   
+    if not command:
+        print("Ko có lệnh")
+        return None
+    
+    # Giả sử command là dict
+    if command.get("type") == "custom_command" and command.get("recive") == False:
+        print(command)
+        success =  pixhawk_sending.send_custom_command(
+            command.get("command_id", 0),
+            command.get("param1", 0),
+            command.get("param2", 0),
+            command.get("param3", 0),
+            command.get("param4", 0),
+            command.get("param5", 0),
+            command.get("param6", 0),
+            command.get("param7", 0)
+        )
+        db["command"].update_one(
+            {"name": "firstboat"},
+            {"$set": {"command.recive": True}}
+        )
+        return success
+    elif command.get("type") == "send_arm_command" and command.get("recive") == False:
+        success =  pixhawk_sending.send_arm_command()
+        db["command"].update_one(
+            {"name": "firstboat"},
+            {"$set": {"command.recive": True}}
+        )
+        return success
+    elif command.get("type")== "send_pwm" and command.get("recive")==False:
+        db["command"].update_one(
+            {"name": "firstboat"},
+            {"$set": {"command.recive": True}}
+        )
+        success =  pixhawk_sending.send_pwm(
+            command.get("channel"), 
+            command.get("pwm"), 
+            step=command.get("step"), 
+            delay=command.get("delay")
+            )
+        return success
+  
 @app.get("/health")
 def health():
     return {"status": "ok"}
 @app.post("/api/send_pwm")
-async def api_send_pwm(req: PWMRequest):
+def api_send_pwm(req: PWMRequest):
     # Gọi hàm send_pwm với tất cả các tham số
-    success = await pixhawk_sending.send_pwm(req.channel, req.pwm, step=req.step, delay=req.delay)
+    success =  pixhawk_sending.send_pwm(req.channel, req.pwm, step=req.step, delay=req.delay)
     
     return {
         "status": "ok" if success else "error",
@@ -172,5 +248,14 @@ async def api_send_custom_command(command: CustomCommandRequest):
     return {
         "status": "ok" if success else "error"
     }
+@app.post("/api/set_param")
+async def set_param(request: Request, payload: dict):
+    param_id = payload.get("param_id")
+    param_value = payload.get("param_value")
+    success = await pixhawk_sending.set_param(param_id, param_value)
+    if success:
+        return {"status": "ok"}
+    return {"status": "error"}
 
 
+    

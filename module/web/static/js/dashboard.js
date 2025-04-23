@@ -11,50 +11,44 @@ const formatNumber = (num, decimals = 2) => num != null ? Number(num).toFixed(de
 const toDegrees = (rad) => rad != null ? (rad * 180 / Math.PI).toFixed(2) : null;
 
 function renderAttitude(data) {
-  
     const { roll, pitch, yaw } = data;
 
     const rollDeg = toDegrees(roll);
     const pitchDeg = toDegrees(pitch);
     const yawDeg = toDegrees(yaw);
 
-
     return `
-        <div class="bg-white rounded-xl shadow p-6 border border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">🛩️ Attitude</h2>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center">
-                            <span class="font-medium text-gray-600">Roll</span>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-800 mr-16 ml-8">${rollDeg}°</span>
-                                <svg width="300" height="40" viewBox="0 0 400 100">
-                                    <!-- Thanh ngang -->
-                                    <line x1="-200" y1="50" x2="200" y2="50" stroke="#ccc" stroke-width="10" />
-                                    
-                                    <!-- Dấu chấm di chuyển theo roll -->
-                                    <circle cx="${(rollDeg+180) }" cy="50" r="6" fill="red" />
-                                </svg>
-                            </div>
-                        </div>
-
-                            <div class="flex justify-between items-center">
-                <span class="font-medium text-gray-600">Pitch</span>
-                <div class="flex items-center space-x-2">
-                    <span class="text-gray-800 ">${pitchDeg}°</span>
-                    <svg width="40" height="200" viewBox="0 0 100 200">
-                        <!-- Thanh dọc -->
-                        <line x1="50" y1="0" x2="50" y2="200" stroke="#ccc" stroke-width="4"/>
-                        
-                        <!-- Dấu chấm di chuyển theo giá trị pitch -->
-                        <circle cx="50" cy="${100 - (pitchDeg + 90) / 180 * 200}" r="6" fill="red"/>
-                    </svg>
+        <div class="card-container">
+            <h2 class="card-title">🛩️ Attitude</h2>
+            <div class="card-content">
+                <div class="flex-row">
+                    <span class="label">Roll</span>
+                    <div class="value-container">
+                        <span class="value">${rollDeg}°</span>
+                        <svg width="300" height="40" viewBox="0 0 400 100">
+                            <!-- Thanh ngang -->
+                            <line x1="-200" y1="50" x2="200" y2="50" stroke="#ccc" stroke-width="10" />
+                            <!-- Dấu chấm di chuyển theo roll -->
+                            <circle cx="${(rollDeg+180)}" cy="50" r="6" fill="red" />
+                        </svg>
+                    </div>
                 </div>
-            </div>
-
-               <div class="flex justify-between items-center">
-                    <span class="font-medium text-gray-600">Yaw</span>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-gray-800">${yawDeg}°</span>
+                <div class="flex-row">
+                    <span class="label">Pitch</span>
+                    <div class="value-container">
+                        <span class="value">${pitchDeg}°</span>
+                        <svg width="40" height="200" viewBox="0 0 100 200">
+                            <!-- Thanh dọc -->
+                            <line x1="50" y1="0" x2="50" y2="200" stroke="#ccc" stroke-width="4"/>
+                            <!-- Dấu chấm di chuyển theo giá trị pitch -->
+                            <circle cx="50" cy="${100 - (pitchDeg + 90) / 180 * 200}" r="6" fill="red"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex-row">
+                    <span class="label">Yaw</span>
+                    <div class="value-container">
+                        <span class="value">${yawDeg}°</span>
                         <svg width="40" height="40" viewBox="0 0 100 100">
                             <!-- Draw Compass (Yaw) -->
                             <circle cx="50" cy="50" r="48" stroke="#ccc" stroke-width="4" fill="white"/>
@@ -73,25 +67,23 @@ function renderAttitude(data) {
 function renderBattery(data) {
     const { voltage, current, remaining } = data;
     return `
-        <div class="bg-white rounded-xl shadow p-6 border border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">🔋 Battery</h2>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Voltage</span>
-                    <span class="text-gray-800">${formatNumber(voltage)} V</span>
-                
-                    
+        <div class="card-container">
+            <h2 class="card-title">🔋 Battery</h2>
+            <div class="card-content">
+                <div class="flex-row">
+                    <span class="label">Voltage</span>
+                    <span class="value">${formatNumber(voltage)} V</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Current</span>
-                    <span class="text-gray-800">${formatNumber(current)} A</span>
+                <div class="flex-row">
+                    <span class="label">Current</span>
+                    <span class="value">${formatNumber(current)} A</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Remaining</span>
-                    <span class="text-gray-800">${formatNumber(remaining, 0)}%</span>
+                <div class="flex-row">
+                    <span class="label">Remaining</span>
+                    <span class="value">${formatNumber(remaining, 0)}%</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: ${remaining || 0}%"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${remaining || 0}%"></div>
                 </div>
             </div>
         </div>`;
@@ -101,56 +93,53 @@ function renderGPS(data) {
     const { lat2, lon2, alt2, satellites, fix_type, timestamp, armed, mode } = data;
 
     return `
-        <div class="bg-white rounded-xl shadow p-6 border border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">📍 GPS</h2>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Latitude</span>
-                    <span class="text-gray-800">${formatNumber(lat2, 6)}</span>
+        <div class="card-container">
+            <h2 class="card-title">📍 GPS</h2>
+            <div class="card-content">
+                <div class="flex-row">
+                    <span class="label">Latitude</span>
+                    <span class="value">${formatNumber(lat2, 6)}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Longitude</span>
-                    <span class="text-gray-800">${formatNumber(lon2, 6)}</span>
+                <div class="flex-row">
+                    <span class="label">Longitude</span>
+                    <span class="value">${formatNumber(lon2, 6)}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Altitude</span>
-                    <span class="text-gray-800">${formatNumber(alt2)} m</span>
+                <div class="flex-row">
+                    <span class="label">Altitude</span>
+                    <span class="value">${formatNumber(alt2)} m</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Satellites</span>
-                    <span class="text-gray-800">${satellites}</span>
+                <div class="flex-row">
+                    <span class="label">Satellites</span>
+                    <span class="value">${satellites}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Armed</span>
-                    <span class="text-gray-800">${armed}</span>
+                <div class="flex-row">
+                    <span class="label">Armed</span>
+                    <span class="value">${armed}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Mode</span>
-                    <span class="text-gray-800">${mode}</span>
+                <div class="flex-row">
+                    <span class="label">Mode</span>
+                    <span class="value">${mode}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Fix Type</span>
-                    <span class="text-gray-800">${fix_type}</span>
+                <div class="flex-row">
+                    <span class="label">Fix Type</span>
+                    <span class="value">${fix_type}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="font-medium text-gray-600">Timestamp</span>
-                    <span class="text-gray-800">${formatNumber(timestamp, 3)}</span>
+                <div class="flex-row">
+                    <span class="label">Timestamp</span>
+                    <span class="value">${formatNumber(timestamp, 3)}</span>
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
-
 
 function renderTextMessages(text) {
     return `
-       <div class="bg-white rounded-xl shadow p-6 border border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">📜 Messages</h2>
-            <div class="max-h-40 overflow-y-auto space-y-2">
-                <p class="text-gray-800">${text || ''}</p>
+        <div class="card-container">
+            <h2 class="card-title">📜 Messages</h2>
+            <div class="messages-container">
+                <p class="message-text">${text || ''}</p>
             </div>
-        </div>`
-    ;
+        </div>`;
 }
 
 async function fetchData() {
@@ -176,37 +165,34 @@ async function fetchData() {
             satellites: pixhawk_data.satellites,
             fix_type: pixhawk_data.fix_type,
             timestamp: pixhawk_data.timestamp,
-            armed:pixhawk_data.armed,
-            mode:pixhawk_data.mode,
+            armed: pixhawk_data.armed,
+            mode: pixhawk_data.mode,
         };
         latestData.text = [pixhawk_data.text]; // Treat as single message
 
         // Render everything
         document.getElementById('telemetry').innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            ${renderAttitude(latestData.attitude)}
-            ${renderBattery(latestData.battery)}
-            ${renderGPS(latestData.gps)}
-            ${renderTextMessages(latestData.text[0])}
-        </div>
-    `;
-    
-    
+            <div class="telemetry-grid">
+                ${renderAttitude(latestData.attitude)}
+                ${renderBattery(latestData.battery)}
+                ${renderGPS(latestData.gps)}
+                ${renderTextMessages(latestData.text[0])}
+            </div>
+        `;
     } catch (error) {
         console.error('Fetch error:', error);
         // Redraw with last data
         document.getElementById('telemetry').innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            ${renderAttitude(latestData.attitude)}
-            ${renderBattery(latestData.battery)}
-            ${renderGPS(latestData.gps)}
-            ${renderTextMessages(latestData.text[0])}
-        </div>
-    `;
-    
+            <div class="telemetry-grid">
+                ${renderAttitude(latestData.attitude)}
+                ${renderBattery(latestData.battery)}
+                ${renderGPS(latestData.gps)}
+                ${renderTextMessages(latestData.text[0])}
+            </div>
+        `;
     }
 }
 
 // Run immediately and every second
 fetchData();
-setInterval(fetchData, 1000);
+setInterval(fetchData, 100);

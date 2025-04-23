@@ -4,13 +4,20 @@ import threading
 from module.mavlink import pixhawk_reader, pixhawk_sending
 from module.camera.usb_camera_module import USBCamera
 from module.nmea.humminbird_reader import connect_humminbird, read_nmea
-from module.web.web_server import handle_nmea_data, handle_pixhawk_data, handle_camera_frame
+from module.web.web_server import handle_nmea_data, handle_pixhawk_data, handle_camera_frame,handle_get_command
 import uvicorn
 import time
 
 def start_web_server():
+    
     uvicorn.run("module.web.web_server:app", host="0.0.0.0", port=8000, reload=False)
-
+def database_loop():
+    try:
+        while True:
+            handle_get_command()
+            time.sleep(0.02)
+    except Exception as e:
+        print(f"Lỗi trong database_loop")
 def pixhawk_loop():
     try:
         master = pixhawk_reader.connect_pixhawk()
@@ -19,6 +26,7 @@ def pixhawk_loop():
             return
         pixhawk_sending.set_master(master)  # ✅ Lưu master để dùng lại
         while True:
+            # handle_get_command()
             data = pixhawk_reader.read_data(master)
             if data:
                 handle_pixhawk_data(data)
@@ -47,7 +55,7 @@ def camera_loop():
         while True:
             frame = camera.read_frame()
             handle_camera_frame(frame)
-            time.sleep(0.05)
+            # time.sleep(0.001)
     except KeyboardInterrupt:
         print("\n🛑 Ngắt camera loop.")
     finally:
@@ -57,7 +65,8 @@ def main_loop():
         threading.Thread(target=pixhawk_loop, daemon=True),
         threading.Thread(target=humminbird_loop, daemon=True),
         threading.Thread(target=start_web_server, daemon=True),
-        threading.Thread(target=camera_loop, daemon=True)
+        threading.Thread(target=camera_loop, daemon=True),
+        threading.Thread(target=database_loop, daemon=True)
     ]
     for t in threads:
         t.start()

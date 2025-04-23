@@ -5,31 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Trang của Ní{% endblock %}</title>
     
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Liên kết file CSS -->
+    <link rel="stylesheet" href="../static/css/base.css">
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+<body>
 
     <!-- Navbar -->
-    <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
-        <div class="text-xl font-bold text-blue-600">MÁP</div>
-        <div class="space-x-4">
-            <a href="/" class="text-gray-700 hover:text-blue-600">Trang chủ</a>
-            <a href="/dashboard" class="text-gray-700 hover:text-blue-600">Dashboard</a>
-            <a href="/control" class="text-gray-700 hover:text-blue-600">Điều khiển</a>
+    <nav>
+        <div class="logo">MÁP</div>
+        <div class="nav-links">
+            <a href="/">Trang chủ</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/control">Điều khiển</a>
         </div>
     </nav>
 
     <!-- Nội dung chính -->
-    <main class="flex-grow p-6">
+    <main>
         {% block content %}
         <!-- Nội dung page sẽ render tại đây -->
         {% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white text-center py-4 shadow-inner">
-        <p class="text-sm text-gray-500">© 2025 ní hảo ma 🤙</p>
+    <footer>
+        <p>© 2025 ní hảo ma 🤙</p>
     </footer>
 
 </body>
