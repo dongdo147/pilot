@@ -1,0 +1,291 @@
+/* Dashboard title */
+.dashboard-title {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: bold; /* font-bold */
+    margin-bottom: 1rem; /* mb-4 */
+    color: #2563eb; /* text-blue-600 */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* gap-2 */
+}
+
+/* NMEA container */
+.nmea-container {
+    background-color: #ffffff; /* bg-white */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* shadow */
+    padding: 1.5rem; /* p-6 */
+    border: 1px solid #e5e7eb; /* border border-gray-200 */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* space-y-2 */
+}
+
+/* Section title */
+.section-title {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600; /* font-semibold */
+    margin-top: 1.5rem; /* mt-6 */
+    margin-bottom: 1rem; /* mb-4 */
+    color: #4b5563; /* text-gray-700 */
+}
+
+/* Telemetry container */
+.telemetry-container {
+    margin-bottom: 1.25rem; /* mb-5 */
+}
+
+/* Camera feed */
+.camera-feed {
+    border-radius: 0.75rem; /* rounded-xl */
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* shadow */
+}
+
+/* Waypoint list */
+.waypoint-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* space-y-4 */
+}
+
+/* Modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* bg-black bg-opacity-50 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50; /* z-50 */
+}
+
+/* Modal content */
+.modal-content {
+    background-color: #ffffff; /* bg-white */
+    padding: 1.5rem; /* p-6 */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-xl */
+    width: 100%;
+    max-width: 32rem; /* max-w-2xl */
+    position: relative;
+}
+
+/* Modal close button */
+.modal-close {
+    position: absolute;
+    top: 0.5rem; /* top-2 */
+    right: 0.5rem; /* right-2 */
+    color: #6b7280; /* text-gray-500 */
+    font-size: 1.25rem; /* text-xl */
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #dc2626; /* hover:text-red-600 */
+}
+
+/* Modal title */
+.modal-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+/* Modal body */
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* space-y-4 */
+    max-height: 70vh; /* max-h-[70vh] */
+    overflow-y: auto; /* overflow-y-auto */
+}
+
+/* Ẩn modal mặc định */
+.hidden {
+    display: none;
+}
+
+/* Card container (for Attitude, Battery, GPS, Messages) */
+.card-container {
+    background-color: #ffffff; /* bg-white */
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* shadow */
+    padding: 1.5rem; /* p-6 */
+    border: 1px solid #e5e7eb; /* border border-gray-200 */
+    margin-bottom: 1rem; /* Thêm khoảng cách giữa các card */
+}
+
+/* Card title */
+.card-title {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: #4b5563; /* text-gray-700 */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+/* Card content */
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* space-y-3 hoặc space-y-2 */
+}
+
+/* Flex row for label-value pairs */
+.flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Label */
+.label {
+    font-weight: 500; /* font-medium */
+    color: #4b5563; /* text-gray-600 */
+}
+
+/* Value */
+.value {
+    color: #1f2937; /* text-gray-800 */
+}
+
+/* Value container (for Attitude SVG) */
+.value-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* space-x-2 */
+}
+
+/* Progress bar (for Battery) */
+.progress-bar {
+    width: 100%;
+    background-color: #e5e7eb; /* bg-gray-200 */
+    border-radius: 9999px; /* rounded-full */
+    height: 0.625rem; /* h-2.5 */
+    margin-top: 0.25rem; /* mt-1 */
+}
+
+/* Progress fill */
+.progress-fill {
+    background-color: #3b82f6; /* bg-blue-500 */
+    height: 0.625rem; /* h-2.5 */
+    border-radius: 9999px; /* rounded-full */
+}
+
+/* Messages container */
+.messages-container {
+    max-height: 10rem; /* max-h-40 */
+    overflow-y: auto; /* overflow-y-auto */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* space-y-2 */
+}
+
+/* Message text */
+.message-text {
+    color: #1f2937; /* text-gray-800 */
+}
+
+/* Telemetry grid */
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem; /* Khoảng cách giữa các card */
+}
+
+/* Waypoint card */
+.waypoint-card {
+    padding: 1rem; /* p-4 */
+    background-color: #f3f4f6; /* bg-gray-100 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* shadow */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Waypoint title */
+.waypoint-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+}
+
+/* Waypoint meta */
+.waypoint-meta {
+    font-size: 0.875rem; /* text-sm */
+    color: #6b7280; /* text-gray-500 */
+}
+
+/* Button */
+.btn {
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    color: #ffffff; /* text-white */
+    border-radius: 0.25rem; /* rounded */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 0.5rem; /* mt-2 */
+}
+
+/* View button */
+.btn-view {
+    background-color: #2563eb; /* bg-blue-600 */
+}
+
+.btn-view:hover {
+    background-color: #1d4ed8; /* hover:bg-blue-700 */
+}
+
+/* Download button */
+.btn-download {
+    background-color: #16a34a; /* bg-green-600 */
+}
+
+.btn-download:hover {
+    background-color: #15803d; /* hover:bg-green-700 */
+}
+
+/* Delete button */
+.btn-delete {
+    background-color: #dc2626; /* bg-red-600 */
+}
+
+.btn-delete:hover {
+    background-color: #b91c1c; /* hover:bg-red-700 */
+}
+
+/* Waypoint table */
+.waypoint-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem; /* mt-4 */
+    border: 1px solid #e5e7eb; /* border */
+}
+
+/* Table header */
+.table-header {
+    background-color: #e5e7eb; /* bg-gray-200 */
+}
+
+/* Table cell */
+.table-cell {
+    border: 1px solid #e5e7eb; /* border */
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    text-align: left;
+}
+
+.table-cell.text-center {
+    text-align: center;
+}
+
+/* Error text */
+.error-text {
+    color: #dc2626; /* text-red-600 */
+}

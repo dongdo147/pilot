@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Liên kết file CSS riêng cho dashboard -->
+<link rel="stylesheet" href="../static/css/dashboard.css">
+
+<h1 class="dashboard-title">
+    📡 Dữ liệu NMEA mới nhất
+</h1>
+
+<div id="nmea" class="nmea-container">
+    <!-- Dữ liệu sẽ hiển thị ở đây -->
+</div>
+
+<h2 class="section-title">📊 Telemetry</h2>
+<div id="telemetry" class="telemetry-container">
+    <!-- Telemetry info sẽ được JS render vào đây -->
+</div>
+
+<img id="camera-feed" src="https://media3.giphy.com/media/uIJBFZoOaifHf52MER/200w.gif?cid=6c09b952gpm4z0cf460cxfjv2f7wjsa1oew0iyh2njy4dg4h&ep=v1_gifs_search&rid=200w.gif&ct=g" width="640" height="480" class="camera-feed" />
+
+<h2 class="section-title">📍 Quản Lý Waypoint</h2>
+
+<div id="waypoint-list" class="waypoint-list">
+    <!-- Danh sách waypoint sẽ hiển thị ở đây -->
+</div>
+
+<!-- Modal overlay -->
+<div id="waypoint-modal" class="modal-overlay hidden">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <button onclick="closeModal()" class="modal-close">
+            ×
+        </button>
+        <h2 class="modal-title">📍 Chi tiết Waypoint</h2>
+        <div id="waypoint-modal-content" class="modal-body">
+            <!-- Nội dung sẽ được render ở đây -->
+        </div>
+    </div>
+</div>
+
+<script src="../static/js/waypoint.js?v=2.0"></script>
+<script src="../static/js/dashboard.js?v=3.1"></script>
+{% endblock %}

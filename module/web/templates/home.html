@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Trang Chủ{% endblock %}
+
+{% block content %}
+<!-- Liên kết file CSS riêng cho trang chủ -->
+<link rel="stylesheet" href="../static/css/home.css">
+
+<h2 class="section-title">📍 Bản đồ theo dõi tàu & Vẽ Waypoint</h2>
+
+<div id="map" class="map-container"></div>
+
+<button id="exportBtn" class="btn btn-export">
+    🚀 Gửi waypoint cho tàu
+</button>
+<div id="stationaryWarning" class="warning-text hidden">
+    ⚠️ Tàu đứng yên quá lâu! Kiểm tra tín hiệu GPS hoặc Pixhawk.
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="../static/js/home.js"></script>
+{% endblock %}

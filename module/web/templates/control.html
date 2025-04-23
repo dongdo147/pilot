@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Điều khiển{% endblock %}
+
+{% block content %}
+<!-- Liên kết file CSS riêng cho trang điều khiển -->
+<link rel="stylesheet" href="../static/css/control.css">
+
+<h2 class="section-title">🎮 Điều khiển tàu tự hành</h2>
+
+<div class="control-container">
+    <!-- Kênh Servo -->
+    <label for="channel" class="input-label">Chọn kênh servo:</label>
+    <select id="channel" name="channel" class="input-select">
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}">Kênh {{ i }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- Giá trị PWM (Slider) -->
+    <label for="pwm" class="input-label">
+        Giá trị PWM: <span id="pwm-value" class="pwm-value">1500</span> µs
+    </label>
+    <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="pwm-slider">
+
+    <!-- Step và Delay -->
+    <div class="input-grid">
+        <div>
+            <label for="step" class="input-label">Số bước:</label>
+            <input type="number" id="step" value="10" min="1" class="input-number">
+        </div>
+        <div>
+            <label for="delay" class="input-label">Delay mỗi bước (ms):</label>
+            <input type="number" id="delay" value="50" min="1" class="input-number">
+        </div>
+    </div>
+
+    <!-- Chọn lệnh cần gửi -->
+    <label for="command" class="input-label">Chọn lệnh cần gửi:</label>
+    <select id="command" name="command" class="input-select">
+        <option value="send_pwm">Gửi lệnh điều khiển PWM</option>
+        <option value="armed">Gửi lệnh ARM</option>
+        <option value="disarmed">Gửi lệnh DISARM</option>
+        <option value="reboot">Gửi lệnh reboot</option>
+        <option value="set_param_safety">Tắt BRD_SAFETYENABLE</option>
+    </select>
+
+    <!-- Nút Gửi -->
+    <button id="submit-btn" class="btn btn-submit">
+        🚀 Gửi lệnh
+    </button>
+
+    <!-- Kết quả -->
+    <p id="result-msg" class="result-message"></p>
+</div>
+
+<script>
+    const pwmSlider = document.getElementById("pwm");
+    const pwmValueDisplay = document.getElementById("pwm-value");
+    const resultMsg = document.getElementById("result-msg");
+
+    pwmSlider.addEventListener("input", () => {
+        pwmValueDisplay.textContent = pwmSlider.value;
+    });
+
+    function showResult(success, message) {
+        resultMsg.textContent = message;
+        resultMsg.classList.toggle("text-success", success);
+        resultMsg.classList.toggle("text-error", !success);
+    }
+
+    async function postCommand(url, payload) {
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            return await res.json();
+        } catch {
+            return { status: "error" };
+        }
+    }
+
+    document.getElementById("submit-btn").addEventListener("click", async () => {
+        const command = document.getElementById("command").value;
+        let payload;
+        let url;
+
+        switch (command) {
+            case "send_pwm":
+                payload = {
+                    channel: +document.getElementById("channel").value,
+                    pwm: +pwmSlider.value,
+                    step: +document.getElementById("step").value,
+                    delay: +document.getElementById("delay").value,
+                };
+                url = "/api/send_pwm";
+                break;
+            case "armed":
+                payload = { command_id: 400, param1: 1 };
+                url = "/api/send_custom_command";
+                break;
+            case "disarmed":
+                payload = { command_id: 400, param1: 0 };
+                url = "/api/send_custom_command";
+                break;
+            case "reboot":
+                payload = { command_id: 246, param1: 1 };
+                url = "/api/send_custom_command";
+                break;
+            case "set_param_safety":
+                payload = {
+                    param_id: "BRD_SAFETYENABLE",
+                    param_value: 0
+                };
+                url = "/api/set_param";
+                break;
+            default:
+                break;
+        }
+
+        const result = await postCommand(url, payload);
+        if (result.status === "ok") {
+            showResult(true, `✅ Lệnh ${command} đã được gửi thành công.`);
+        } else {
+            showResult(false, "❌ Gửi lệnh thất bại. Kiểm tra kết nối Pixhawk.");
+        }
+    });
+</script>
+{% endblock %}
