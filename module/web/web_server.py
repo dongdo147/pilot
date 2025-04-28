@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request,HTTPException
 from fastapi.responses import  JSONResponse,FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-
 import os
 import json
 import cv2
@@ -17,6 +16,10 @@ from pymongo import MongoClient
 load_dotenv()
 mongo_uri = os.getenv("MONGO_URI")
 database_name = os.getenv("DATABASE_NAME")
+class ParamPayload(BaseModel):
+    param_id: str
+    param_value: int
+
 
 client = MongoClient(mongo_uri)
 db = client[database_name]
@@ -234,14 +237,14 @@ def api_send_pwm(req: PWMRequest):
     }
 
 @app.post("/api/send_arm_command")
-async def api_send_arm_command():
-    success = await pixhawk_sending.send_arm_command()
+def api_send_arm_command():
+    success =  pixhawk_sending.send_arm_command()
     return {
         "status": "ok" if success else "error"
     }
 @app.post("/api/send_custom_command")
-async def api_send_custom_command(command: CustomCommandRequest):
-    success = await pixhawk_sending.send_custom_command(
+def api_send_custom_command(command: CustomCommandRequest):
+    success =  pixhawk_sending.send_custom_command(
         command.command_id, command.param1, command.param2, command.param3, 
         command.param4, command.param5, command.param6, command.param7
     )
@@ -249,13 +252,21 @@ async def api_send_custom_command(command: CustomCommandRequest):
         "status": "ok" if success else "error"
     }
 @app.post("/api/set_param")
-async def set_param(request: Request, payload: dict):
-    param_id = payload.get("param_id")
-    param_value = payload.get("param_value")
-    success = await pixhawk_sending.set_param(param_id, param_value)
+def set_param(payload: ParamPayload):
+    param_id = payload.param_id
+    param_value = payload.param_value
+    
+    # Kiểm tra param_id và param_value
+    if not param_id or not isinstance(param_value, int):
+        raise HTTPException(status_code=400, detail="param_id hoặc param_value không hợp lệ")
+    
+    # Gọi hàm set_param_value
+    success, message = pixhawk_sending.set_param_value(param_id, param_value)
     if success:
-        return {"status": "ok"}
-    return {"status": "error"}
+        return {"status": "ok", "message": "set param thành công"}
+    raise HTTPException(status_code=500, detail=message)
+
+
 
 
     

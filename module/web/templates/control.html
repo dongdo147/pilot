@@ -18,13 +18,15 @@
     </select>
 
     <!-- Giá trị PWM (Slider) -->
-    <label for="pwm" class="input-label">
-        Giá trị PWM: <span id="pwm-value" class="pwm-value">1500</span> µs
-    </label>
-    <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="pwm-slider">
+    <div id="pwm-container">
+        <label for="pwm" class="input-label">
+            Giá trị PWM: <span id="pwm-value" class="pwm-value">1500</span> µs
+        </label>
+        <input type="range" id="pwm" min="800" max="2200" value="1500" step="1" class="pwm-slider">
+    </div>
 
     <!-- Step và Delay -->
-    <div class="input-grid">
+    <div id="step-delay-container" class="input-grid">
         <div>
             <label for="step" class="input-label">Số bước:</label>
             <input type="number" id="step" value="10" min="1" class="input-number">
@@ -35,6 +37,12 @@
         </div>
     </div>
 
+    <!-- Giá trị SERVOx_FUNCTION -->
+    <div id="servo-function-container" style="display: none;">
+        <label for="servo-function" class="input-label">Giá trị SERVOx_FUNCTION (0-200):</label>
+        <input type="number" id="servo-function" value="0" min="0" max="200" class="input-number">
+    </div>
+
     <!-- Chọn lệnh cần gửi -->
     <label for="command" class="input-label">Chọn lệnh cần gửi:</label>
     <select id="command" name="command" class="input-select">
@@ -43,6 +51,7 @@
         <option value="disarmed">Gửi lệnh DISARM</option>
         <option value="reboot">Gửi lệnh reboot</option>
         <option value="set_param_safety">Tắt BRD_SAFETYENABLE</option>
+        <option value="set_servo_function">Đặt SERVOx_FUNCTION</option>
     </select>
 
     <!-- Nút Gửi -->
@@ -58,9 +67,32 @@
     const pwmSlider = document.getElementById("pwm");
     const pwmValueDisplay = document.getElementById("pwm-value");
     const resultMsg = document.getElementById("result-msg");
+    const commandSelect = document.getElementById("command");
+    const pwmContainer = document.getElementById("pwm-container");
+    const stepDelayContainer = document.getElementById("step-delay-container");
+    const servoFunctionContainer = document.getElementById("servo-function-container");
 
+    // Cập nhật giá trị PWM trên slider
     pwmSlider.addEventListener("input", () => {
         pwmValueDisplay.textContent = pwmSlider.value;
+    });
+
+    // Hiển thị/ẩn các input dựa trên lệnh
+    commandSelect.addEventListener("change", () => {
+        const command = commandSelect.value;
+        if (command === "send_pwm") {
+            pwmContainer.style.display = "block";
+            stepDelayContainer.style.display = "flex";
+            servoFunctionContainer.style.display = "none";
+        } else if (command === "set_servo_function") {
+            pwmContainer.style.display = "none";
+            stepDelayContainer.style.display = "none";
+            servoFunctionContainer.style.display = "block";
+        } else {
+            pwmContainer.style.display = "none";
+            stepDelayContainer.style.display = "none";
+            servoFunctionContainer.style.display = "none";
+        }
     });
 
     function showResult(success, message) {
@@ -78,7 +110,7 @@
             });
             return await res.json();
         } catch {
-            return { status: "error" };
+            return { status: "error", message: "Lỗi kết nối server" };
         }
     }
 
@@ -116,15 +148,29 @@
                 };
                 url = "/api/set_param";
                 break;
-            default:
+            case "set_servo_function":
+                const channel = +document.getElementById("channel").value;
+                const servoFunctionValue = +document.getElementById("servo-function").value;
+                if (servoFunctionValue < 0 || servoFunctionValue > 200) {
+                    showResult(false, "❌ Giá trị SERVOx_FUNCTION phải từ 0-200");
+                    return;
+                }
+                payload = {
+                    param_id: `SERVO${channel}_FUNCTION`,
+                    param_value: servoFunctionValue
+                };
+                url = "/api/set_param";
                 break;
+            default:
+                showResult(false, "❌ Lệnh không hợp lệ");
+                return;
         }
 
         const result = await postCommand(url, payload);
         if (result.status === "ok") {
-            showResult(true, `✅ Lệnh ${command} đã được gửi thành công.`);
+            showResult(true, result.message || `✅ Lệnh ${command} đã được gửi thành công`);
         } else {
-            showResult(false, "❌ Gửi lệnh thất bại. Kiểm tra kết nối Pixhawk.");
+            showResult(false, result.message || "❌ Gửi lệnh thất bại. Kiểm tra kết nối Pixhawk");
         }
     });
 </script>
