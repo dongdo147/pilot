@@ -141,12 +141,33 @@ function renderTextMessages(text) {
             </div>
         </div>`;
 }
+function renderPWM(pwmArray) {
+    if (!Array.isArray(pwmArray) || pwmArray.length === 0) return '';
+
+    // Lấy đối tượng PWM từ mảng
+    const pwmObject = pwmArray[0]; // Giả sử chỉ có 1 đối tượng trong mảng
+
+    return `
+        <div class="card-container">
+            <h2 class="card-title">🎚️ PWM Outputs</h2>
+            <div class="card-content">
+                ${Object.keys(pwmObject).map(key => `
+                    <div class="flex-row">
+                        <span class="label">${key}</span>
+                        <span class="value">${formatNumber(pwmObject[key], 0)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+}
+    
+
 
 async function fetchData() {
     try {
         const res = await fetch('/data');
         const { pixhawk_data } = await res.json();
-
+   
         // Update data
         latestData.attitude = {
             roll: pixhawk_data.roll,
@@ -169,7 +190,7 @@ async function fetchData() {
             mode: pixhawk_data.mode,
         };
         latestData.text = [pixhawk_data.text]; // Treat as single message
-
+        latestData.pwm=[pixhawk_data.pwm_outputs]
         // Render everything
         document.getElementById('telemetry').innerHTML = `
             <div class="telemetry-grid">
@@ -177,6 +198,7 @@ async function fetchData() {
                 ${renderBattery(latestData.battery)}
                 ${renderGPS(latestData.gps)}
                 ${renderTextMessages(latestData.text[0])}
+                ${renderPWM(latestData.pwm)}
             </div>
         `;
     } catch (error) {
@@ -188,6 +210,7 @@ async function fetchData() {
                 ${renderBattery(latestData.battery)}
                 ${renderGPS(latestData.gps)}
                 ${renderTextMessages(latestData.text[0])}
+                ${renderPWM(latestData.pwm)}
             </div>
         `;
     }

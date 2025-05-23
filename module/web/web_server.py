@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 
 load_dotenv()
-mongo_uri = os.getenv("MONGO_URI")
+# mongo_uri = os.getenv("MONGO_URI")
+mongo_uri= os.getenv("MONGO_URI")
 database_name = os.getenv("DATABASE_NAME")
 class ParamPayload(BaseModel):
     param_id: str
