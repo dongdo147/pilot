@@ -2,7 +2,7 @@ from pymavlink import mavutil
 import time
 import json
 import os
-
+pixhawk_master = None
 def log_data(data, filename="log/gps_log.txt"):
     if data.get("type") == "gps":
         try:
@@ -47,7 +47,8 @@ def connect_pixhawk(device='/dev/serial0', baudrate=57600, timeout=10, retries=3
 def read_data(master):
     if master is None:
         return None
-
+    global pixhawk_master
+    pixhawk_master=master
     msg = master.recv_match(blocking=True)
     if not msg:
         return None
@@ -115,3 +116,36 @@ def read_data(master):
         }
 
     return None
+def readMission():
+    global pixhawk_master
+    if pixhawk_master is None:
+        print("❌ Chưa có kết nối Pixhawk")
+        return False, "Chưa có kết nối Pixhawk"
+
+    print("📥 Đang tải mission từ Pixhawk...")
+    mission_items = []
+
+    try:
+        pixhawk_master.waypoint_request_list_send()
+        n_missions = None
+
+        # Nhận số lượng mission
+        while True:
+            msg = pixhawk_master.recv_match(type='MISSION_COUNT', blocking=True, timeout=5)
+            if msg:
+                n_missions = msg.count
+                break
+
+        # Lấy từng mission item
+        for i in range(n_missions):
+            pixhawk_master.waypoint_request_send(i)
+            msg = pixhawk_master.recv_match(type='MISSION_ITEM', blocking=True, timeout=5)
+            if msg:
+                mission_items.append(msg.to_dict())
+
+        print("✅ Đã tải xong mission!")
+        return True, mission_items
+
+    except Exception as e:
+        print(f"❌ Lỗi khi đọc mission: {e}")
+        return False, str(e)

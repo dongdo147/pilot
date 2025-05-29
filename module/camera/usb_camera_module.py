@@ -43,8 +43,3 @@ class USBCamera:
             self.cap.release()
             print("Camera đã đóng")
 
-# Nếu chạy trực tiếp file này để test:
-if __name__ == "__main__":
-    cam = USBCamera()
-    cam.open()
-    cam.show_preview()

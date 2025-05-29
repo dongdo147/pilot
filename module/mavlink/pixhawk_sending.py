@@ -21,7 +21,7 @@ def set_master(master):
 def set_pwm_channels(pwm_dict):
     global pwm_channels
     pwm_channels = pwm_dict
-    print(pwm_channels)
+   
 def get_pwm_channel(ch):
     return pwm_channels.get(f"ch{ch}")
     
@@ -197,4 +197,75 @@ def send_arm_command():
     # Đợi phản hồi ACK
     ack = pixhawk_master.recv_match(type='COMMAND_ACK', blocking=True)
     print("✅ ARM ACK:", ack)
+    return True
+def send_mission(waypoints):
+    global pixhawk_master
+    if pixhawk_master is None:
+        return False, "Chưa kết nối Pixhawk"
+
+    try:
+        # Clear old mission
+        pixhawk_master.mav.mission_clear_all_send(
+            pixhawk_master.target_system,
+            pixhawk_master.target_component
+        )
+        time.sleep(1)
+
+        # Gửi số lượng mission
+        pixhawk_master.mav.mission_count_send(
+            pixhawk_master.target_system,
+            pixhawk_master.target_component,
+            len(waypoints)
+        )
+
+        for wp in waypoints:
+            pixhawk_master.mav.mission_item_send(
+                pixhawk_master.target_system,
+                pixhawk_master.target_component,
+                wp.seq,
+                wp.frame,
+                wp.command,
+                wp.current,
+                wp.autocontinue,
+                wp.param1,
+                wp.param2,
+                wp.param3,
+                wp.param4,
+                wp.x,
+                wp.y,
+                wp.z
+            )
+            time.sleep(0.2)
+
+        # Chờ nhận mission ack
+        ack = pixhawk_master.recv_match(type='MISSION_ACK', blocking=True, timeout=5)
+        if ack:
+            return True, [wp.dict() for wp in waypoints]
+        else:
+            return False, "Không nhận được MISSION_ACK"
+
+    except Exception as e:
+        return False, str(e)
+
+def start_mission():
+    global pixhawk_master
+    if pixhawk_master is None:
+        print("❌ Pixhawk chưa kết nối.")
+        return False
+
+    # Chuyển sang chế độ AUTO
+    mode = 'AUTO'
+    try:
+        mode_id = pixhawk_master.mode_mapping()[mode]
+    except Exception as e:
+        print(f"❌ Không lấy được mode_id cho {mode}: {e}")
+        return False
+
+    pixhawk_master.mav.set_mode_send(
+        pixhawk_master.target_system,
+        mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
+        mode_id
+    )
+
+    print("🚀 Đã chuyển sang chế độ AUTO. Mission sẽ tự động bắt đầu.")
     return True

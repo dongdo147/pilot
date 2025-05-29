@@ -58,6 +58,9 @@
     <button id="submit-btn" class="btn btn-submit">
         🚀 Gửi lệnh
     </button>
+   <button id="get-mission-btn" class="btn btn-submit">
+         lấy waypoint
+    </button>
 
     <!-- Kết quả -->
     <p id="result-msg" class="result-message"></p>
@@ -113,7 +116,23 @@
             return { status: "error", message: "Lỗi kết nối server" };
         }
     }
-
+    async function getMission(url) {
+        try {
+            console.log("đã gửi")
+            const res = await fetch(url, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+             
+            });
+            return await res.json();
+        } catch {
+            return { status: "error", message: "Lỗi kết nối server" };
+        }
+    }
+       document.getElementById("get-mission-btn").addEventListener("click", async () => {
+          const  url = "/api/get_mission"
+         await getMission(url)
+       })
     document.getElementById("submit-btn").addEventListener("click", async () => {
         const command = document.getElementById("command").value;
         let payload;

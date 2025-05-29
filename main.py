@@ -1,80 +1,83 @@
-# main.py
-
-import threading
+import asyncio
 from module.mavlink import pixhawk_reader, pixhawk_sending
 from module.camera.usb_camera_module import USBCamera
 from module.nmea.humminbird_reader import connect_humminbird, read_nmea
-from module.web.web_server import handle_nmea_data, handle_pixhawk_data, handle_camera_frame,handle_get_command
+from module.web.web_server import handle_nmea_data, handle_pixhawk_data, handle_camera_frame, handle_get_command
 import uvicorn
-import time
 
-def start_web_server():
-    
-    uvicorn.run("module.web.web_server:app", host="0.0.0.0", port=8000, reload=False)
-def database_loop():
+async def start_web_server():
+    config = uvicorn.Config("module.web.web_server:app", port=8000, reload=False)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+async def database_loop():
     try:
         while True:
-            handle_get_command()
-            time.sleep(0.02)
+            await handle_get_command()
+            await asyncio.sleep(0.02)
     except Exception as e:
-        print(f"Lỗi trong database_loop")
-def pixhawk_loop():
+        print(f"Lỗi trong database_loop: {e}")
+
+async def pixhawk_loop():
     try:
-        master = pixhawk_reader.connect_pixhawk()
+        master = await asyncio.to_thread(pixhawk_reader.connect_pixhawk)
         if master is None:
             print("⛔ Pixhawk chưa kết nối. Dừng luồng Pixhawk.")
             return
-        pixhawk_sending.set_master(master)  # ✅ Lưu master để dùng lại
+        pixhawk_sending.set_master(master)
         while True:
-            # handle_get_command()
-            data = pixhawk_reader.read_data(master)
+            data = await asyncio.to_thread(pixhawk_reader.read_data, master)
             if data:
-                handle_pixhawk_data(data)
-            time.sleep(0.01)
+                await handle_pixhawk_data(data)
+            await asyncio.sleep(0.01)
     except Exception as e:
         print(f"💥 Lỗi trong Pixhawk loop: {e}")
 
-def humminbird_loop():
-    humminbird = connect_humminbird()
+async def humminbird_loop():
+    humminbird = await asyncio.to_thread(connect_humminbird)
     if humminbird is None:
         print("⛔ Không đọc được dữ liệu từ Humminbird.")
         return
     try:
         while True:
-            nmea_line = read_nmea(humminbird)
+            nmea_line = await asyncio.to_thread(read_nmea, humminbird)
             if nmea_line:
-                handle_nmea_data(nmea_line)
-            time.sleep(0.01)
-    except KeyboardInterrupt:
+                await handle_nmea_data(nmea_line)
+            await asyncio.sleep(0.01)
+    except asyncio.CancelledError:
         print("\n🛑 Ngắt luồng Humminbird.")
+    except Exception as e:
+        print(f"Lỗi trong humminbird_loop: {e}")
 
-def camera_loop():
+async def camera_loop():
     camera = USBCamera()
-    try:
-        camera.open()
-        while True:
-            frame = camera.read_frame()
-            handle_camera_frame(frame)
-            # time.sleep(0.001)
-    except KeyboardInterrupt:
-        print("\n🛑 Ngắt camera loop.")
-    finally:
-        camera.release()
-def main_loop():
-    threads = [
-        threading.Thread(target=pixhawk_loop, daemon=True),
-        threading.Thread(target=humminbird_loop, daemon=True),
-        threading.Thread(target=start_web_server, daemon=True),
-        threading.Thread(target=camera_loop, daemon=True),
-        threading.Thread(target=database_loop, daemon=True)
+    while True:
+        try:
+            await asyncio.to_thread(camera.open)
+            print("📷 Camera đã kết nối.")
+            while True:
+                frame = await asyncio.to_thread(camera.read_frame)
+                await handle_camera_frame(frame)
+        except Exception as e:
+            print(f"💥 Lỗi camera: {e}")
+            print("🔁 Thử kết nối lại camera sau 2 giây...")
+            await asyncio.sleep(2)
+        finally:
+            await asyncio.to_thread(camera.release)
+            await asyncio.sleep(1)
+
+async def main_loop():
+    tasks = [
+        asyncio.create_task(start_web_server()),
+        asyncio.create_task(pixhawk_loop()),
+        asyncio.create_task(humminbird_loop()),
+        asyncio.create_task(camera_loop()),
+        asyncio.create_task(database_loop()),
     ]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
+    await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
     try:
-        main_loop()
+        asyncio.run(main_loop())
     except KeyboardInterrupt:
         print("\n🛑 Dừng toàn bộ chương trình.")
