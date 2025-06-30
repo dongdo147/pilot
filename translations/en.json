@@ -1,0 +1,55 @@
+{
+  "nav": {
+    "title": "Yacht Control System",
+    "nav_home": "Home",
+    "nav_yacht": "Yacht Dashboard",
+    "nav_power": "Power Control",
+    "nav_mission": "Mission Manager",
+      "addWaypoint": "Add Mission"
+  },
+  "home": {
+    "addWaypoint": "Add Mission",
+    "delete":"Delete",
+    "save_as":"Save as",
+    "saveToPixhawk":"Pixhawk",
+    "saveToRaspberryPi":"Raspberrypi",
+    "missionName":"Mission Name",
+    "confirm":"Confirm",
+    "close":"Close",
+    "YachtControl":"Yacht Control System",
+    "createMission":"Create Mission",
+    "fetchMission":"Read",
+    "saveMission":"Save",
+    "setHome":"Set Home",
+    "stopMission":"Stop Misison",
+    "YachtInfo":"Yacht Info",
+    "location":"Location",
+    "speed":"Speed",
+    "direction":"Direction",
+    "depth":"Depth",
+    "wind_speed":"Wind Speed",
+    "engine":"Engine",
+    "select":"Select where to read",
+    "missionlist":"Mission list",
+    "name":"Mission Name",
+    "day":"Create date",
+    "action":"Action"
+    
+  },
+  "yacht":{
+    "lat":"Lat",
+    "lon":"Lon",
+    "roll":"Roll",
+    "pitch":"Pitch"
+  },
+  "power":{
+    "time-operating":"Operating time",
+    "remaining-time":"Time remaining",
+    "power-output":"Power output",
+    "engine-speed":"Engine's speed",
+    "angel":"Servo's angel",
+    "auto-update":"Auto update",
+    "send_command":"Send command",
+    "control":"Control"
+  }
+}

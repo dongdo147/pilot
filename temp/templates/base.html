@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trang của Ní{% endblock %}</title>
+    
+    <!-- Liên kết file CSS -->
+    <link rel="stylesheet" href="../static/css/base.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">MÁP</div>
+        <div class="nav-links">
+            <a href="/">Trang chủ</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/control">Điều khiển</a>
+        </div>
+    </nav>
+
+    <!-- Nội dung chính -->
+    <main>
+        {% block content %}
+        <!-- Nội dung page sẽ render tại đây -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 ní hảo ma 🤙</p>
+    </footer>
+
+</body>
+</html>

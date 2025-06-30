@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+
+{% block title %}Yacht Dashboard{% endblock %}
+
+{% block head %}
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1.5fr 2fr 1.5fr;
+        gap: 20px;
+        padding: 20px;
+        min-height: 100vh;
+        background: #f3f4f6;
+    }
+    .panel {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .left-panel, .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .center-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .yacht-image {
+        max-width: 130%;
+        height: 80%;
+    
+        
+        border-radius: 8px;
+    }
+    .camera-container {
+        position: relative;
+        width: 100%;
+    }
+    .camera-frame {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+    }
+    .overlay {
+        position: absolute;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .crosshair {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 24px;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    .status-running { background: #22c55e; }
+    .status-stopped { background: #ef4444; }
+    .status-warning { background: #f59e0b; }
+    .temperature-safe { color: #22c55e; }
+    .temperature-warning { color: #f59e0b; }
+    .temperature-critical { color: #ef4444; }
+    .engine-box {
+        background: #f9fafb;
+        padding: 12px;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+    .engine-box:hover {
+        transform: translateY(-2px);
+    }
+    .data-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #374151;
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+    }
+    .data-card {
+        background: #f9fafb;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e5e7eb;
+    }
+    .data-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .data-card-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+    .data-card-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1f2937;
+    }
+    .data-card-icon {
+        font-size: 24px;
+        color: #3b82f6;
+        margin-bottom: 8px;
+    }
+    .direction-bar-container {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 40px;
+        overflow: hidden;
+        background: none;
+        border: none;
+    }
+    .direction-bar {
+        display: flex;
+        position: absolute;
+        height: 100%;
+        transition: transform 0.3s ease;
+        white-space: nowrap;
+    }
+    .direction-label {
+        width: 60px;
+        text-align: center;
+        line-height: 40px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        position: relative;
+    }
+    .direction-label::after {
+        content: '';
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 10px;
+        background: white;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+    .direction-label:nth-child(8n + 1) {
+        font-size: 18px;
+    }
+    .direction-label:nth-child(8n + 1)::after {
+        height: 15px;
+    }
+    .direction-label .degree-marker {
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(50%);
+        width: 1px;
+        height: 6px;
+        background: white;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+    .direction-label .degree-marker:nth-child(2) { left: calc(50% + 12px); }
+    .direction-label .degree-marker:nth-child(3) { left: calc(50% + 24px); }
+    .direction-label .degree-marker:nth-child(4) { left: calc(50% - 12px); }
+    .direction-label .degree-marker:nth-child(5) { left: calc(50% - 24px); }
+    .center-marker {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 100%;
+        background: #ef4444;
+        z-index: 10;
+    }
+    .roll-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: transform 0.3s ease;
+    }
+    .roll-dash {
+        width: 10px;
+        height: 2px;
+        background: white;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+    .canvas-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+</style>
+<script>
+    const placeholderData = {
+        nmea_data: {
+            heading: 180,
+            speed: 12.5,
+            latitude: 10.7769,
+            longitude: 106.7009
+        },
+        pixhawk_data: {
+            altitude: 0,
+            roll: 2.5,
+            pitch: 1.8,
+            yaw: 180
+        },
+        engine_data: {
+            engine1: { rpm: 1200, servo_angle: 45, power: 50, status: "Running", temperature: 75 },
+            engine2: { rpm: 1300, servo_angle: 30, power: 55, status: "Running", temperature: 85 },
+            engine3: { rpm: 1100, servo_angle: 45, power: 45, status: "Warning", temperature: 95 }
+        }
+    };
+
+    function rpmToPercent(rpm) {
+        return Math.round((rpm / 3000) * 100);
+    }
+
+function drawEngineGauge(canvasId, percent, servoAngle) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Vẽ nửa cung tròn nền (màu xám, chỉ nửa trên)
+    ctx.beginPath();
+    ctx.arc(40, 40, 32, Math.PI, 2 * Math.PI, false); // Chỉ vẽ từ 180° đến 360°
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.stroke();
+
+    // Vẽ vòng cung tốc độ động cơ (nửa trên, màu xanh dương)
+    ctx.beginPath();
+    const speedStartAngle = Math.PI; // 180°
+    const speedEndAngle = Math.PI + (percent / 100) * Math.PI; // 180° đến 360°
+    ctx.arc(40, 40, 32, speedStartAngle, speedEndAngle, false);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#3b82f6';
+    ctx.stroke();
+
+    // Vẽ biểu tượng động cơ đẩy tại đầu kim
+    ctx.save();
+    ctx.translate(40, 40); // Di chuyển tâm tọa độ đến trung tâm canvas
+    ctx.rotate(Math.PI * servoAngle / 180); // Xoay theo góc servo
+
+    // Vẽ thân động cơ (hình thang thon dài, giống động cơ đẩy)
+    ctx.beginPath();
+    ctx.moveTo(28 - 4, -6); // Đầu động cơ (nhọn hơn)
+    ctx.lineTo(28 + 6, -4); // Phía trên thân
+    ctx.lineTo(28 + 6, 4);  // Phía dưới thân
+    ctx.lineTo(28 - 4, 6);  // Đầu dưới động cơ
+    ctx.closePath();
+    ctx.fillStyle = '#22c55e'; // Màu xanh lá để đồng bộ với kim trước đó
+    ctx.fill();
+    ctx.strokeStyle = '#4b5563'; // Viền xám
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Vẽ cánh quạt (thẳng hàng với kim, trên và dưới thân động cơ)
+    const bladeWidth = 8;
+    const bladeHeight = 2;
+    ctx.fillStyle = '#22c55e';
+    // Cánh quạt trên
+    ctx.fillRect(28 - bladeWidth / 2, -10 - bladeHeight, bladeWidth, bladeHeight);
+    // Cánh quạt dưới
+    ctx.fillRect(28 - bladeWidth / 2, 10, bladeWidth, bladeHeight);
+
+    // Vẽ luồng khí phía sau (mô phỏng phản lực)
+    ctx.beginPath();
+    ctx.moveTo(28 + 6, -3); // Bắt đầu từ đuôi động cơ
+    ctx.lineTo(28 + 10, -5); // Luồng khí thuôn ra ngoài
+    ctx.lineTo(28 + 10, 5);
+    ctx.lineTo(28 + 6, 3);
+    ctx.closePath();
+    ctx.fillStyle = '#60a5fa'; // Màu xanh nhạt cho luồng khí
+    ctx.fill();
+
+    // Vẽ chi tiết mũi động cơ (hình tròn nhỏ)
+    ctx.beginPath();
+    ctx.arc(28 - 4, 0, 2, 0, 2 * Math.PI); // Vòng tròn ở đầu động cơ
+    ctx.fillStyle = '#4b5563'; // Màu xám cho chi tiết
+    ctx.fill();
+
+    ctx.restore();
+
+    // Vẽ kim (tùy chọn, giữ để dễ hình dung)
+    ctx.beginPath();
+    ctx.moveTo(40, 40);
+    const radian = Math.PI * servoAngle / 180;
+    const needleLength = 28;
+    const endX = 40 + needleLength * Math.cos(radian);
+    const endY = 40 + needleLength * Math.sin(radian);
+    ctx.lineTo(endX, endY);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#22c55e';
+    ctx.stroke();
+
+    // Vẽ tâm vòng tròn
+    ctx.beginPath();
+    ctx.arc(40, 40, 3, 0, 2 * Math.PI);
+    ctx.fillStyle = '#374151';
+    ctx.fill();
+}
+    function updateData() {
+        try {
+            document.getElementById('data-heading').textContent = `${placeholderData.nmea_data.heading}°`;
+            document.getElementById('data-speed').textContent = `${placeholderData.nmea_data.speed} knot`;
+            document.getElementById('data-latitude').textContent = `${placeholderData.nmea_data.latitude}°`;
+            document.getElementById('data-longitude').textContent = `${placeholderData.nmea_data.longitude}°`;
+            document.getElementById('data-altitude').textContent = `${placeholderData.pixhawk_data.altitude}m`;
+            document.getElementById('data-roll').textContent = `${placeholderData.pixhawk_data.roll}°`;
+            document.getElementById('data-pitch').textContent = `${placeholderData.pixhawk_data.pitch}°`;
+       
+
+            const yaw = placeholderData.pixhawk_data.yaw;
+            const totalWidthPerCycle = 60 * 8;
+            const offset = (yaw / 360) * totalWidthPerCycle;
+            const containerWidth = document.querySelector('.direction-bar-container').offsetWidth;
+            const centerOffset = containerWidth / 2 - 30;
+            const translateX = centerOffset - offset;
+            document.getElementById('direction-bar').style.transform = `translateX(${translateX}px)`;
+
+            const roll = placeholderData.pixhawk_data.roll;
+            document.getElementById('roll-indicator').style.transform = `translate(-50%, -50%) rotate(${roll}deg)`;
+
+            document.getElementById('overlay-heading').innerHTML = `🧭 ${placeholderData.nmea_data.heading}°`;
+            document.getElementById('overlay-speed').innerHTML = `🚤 ${placeholderData.nmea_data.speed} hải lý/giờ`;
+            document.getElementById('overlay-lat').innerHTML = `🌐 ${placeholderData.nmea_data.latitude}°`;
+            document.getElementById('overlay-lon').innerHTML = `🌐 ${placeholderData.nmea_data.longitude}°`;
+
+            for (let i = 1; i <= 3; i++) {
+                const engine = placeholderData.engine_data[`engine${i}`];
+                try {
+                    const rpmElement = document.getElementById(`engine${i}-rpm`);
+                    const servoElement = document.getElementById(`engine${i}-servo`);
+                    const powerElement = document.getElementById(`engine${i}-power`);
+                    const statusElement = document.getElementById(`engine${i}-status`);
+                    const statusIndicatorElement = document.getElementById(`engine${i}-status-indicator`);
+                    const tempElement = document.getElementById(`engine${i}-temperature`);
+
+                    if (rpmElement) rpmElement.textContent = `${rpmToPercent(engine.rpm)}%`;
+                    if (servoElement) servoElement.textContent = `${engine.servo_angle}°`;
+                    if (powerElement) powerElement.textContent = `${engine.power} kW`;
+                    if (statusElement) statusElement.textContent = `${engine.status === "Running" ? "Đang chạy" : engine.status === "Stopped" ? "Dừng" : "Cảnh báo"}`;
+                    if (statusIndicatorElement) statusIndicatorElement.className = `status-indicator status-${engine.status.toLowerCase()}`;
+                    if (tempElement) {
+                        tempElement.textContent = `${engine.temperature}°C`;
+                        tempElement.className = `data-label temperature-${
+                            engine.temperature <= 80 ? 'safe' : 
+                            engine.temperature <= 90 ? 'warning' : 'critical'
+                        }`;
+                    }
+
+                    drawEngineGauge(`engine${i}-gauge-canvas`, rpmToPercent(engine.rpm), engine.servo_angle);
+                } catch (error) {
+                    console.error(`Error updating engine ${i}:`, error);
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi cập nhật dữ liệu:', error);
+        }
+    }
+
+    async function fetchCameraFrame() {
+        try {
+            const response = await fetch('/camera');
+            const data = await response.json();
+
+            if(data.image){
+                document.getElementById('camera-frame').src = 'data:image/jpeg;base64,' + data.image;
+            }
+      
+            } catch (error) {
+            console.error('Lỗi tải khung hình camera:', error);
+         }
+    }
+
+    setInterval(updateData, 2000);
+    setInterval(fetchCameraFrame, 100);
+
+    window.onload = function() {
+        updateData();
+        fetchCameraFrame();
+    };
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Left Panel: Camera and Data -->
+    <div class="left-panel">
+        <div class="panel">
+       
+            <div class="camera-container">
+                <img id="camera-frame" class="camera-frame" alt="Camera-frame" src="https://cdn.dribbble.com/userupload/23296314/file/original-939e41a7e024aac09c6eb5dafa6c7346.gif" />
+                <div class="crosshair">+</div>
+                <div class="roll-indicator" id="roll-indicator">
+                    <div class="roll-dash"></div>
+                    <div class="roll-dash"></div>
+                    <div class="roll-dash"></div>
+                    <div class="roll-dash"></div>
+                </div>
+                <div class="overlay" id="overlay-heading" style="top: 60px; left: 10px;">🧭 Loading...</div>
+                <div class="overlay" id="overlay-speed" style="top: 90px; left: 10px;">🚤 Loading...</div>
+                <div class="overlay" id="overlay-lat" style="top: 120px; left: 10px;">🌐 Loading...</div>
+                <div class="overlay" id="overlay-lon" style="top: 150px; left: 10px;">🌐 Loading...</div>
+                <div class="direction-bar-container">
+                    <div class="direction-bar" id="direction-bar">
+                        <span class="direction-label">N
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">NE
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">E
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">SE
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">S
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">SW
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">W
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">NW
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">N
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">NE
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">E
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">SE
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">S
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">SW
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">W
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                        <span class="direction-label">NW
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                            <div class="degree-marker"></div>
+                        </span>
+                    </div>
+                    <div class="center-marker"></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+          
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-card-icon">🧭</div>
+                    <div class="direction data-card-label">Hướng đi</div>
+                    <div class="data-card-value" id="data-heading">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">🚤</div>
+                    <div class="speed data-card-label">Tốc độ</div>
+                    <div class="data-card-value" id="data-speed">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">🌐</div>
+                    <div  class="lat data-card-label">Vĩ độ</div>
+                    <div class="data-card-value" id="data-latitude">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">🌐</div>
+                    <div  class="lon data-card-label">Kinh độ</div>
+                    <div class="data-card-value" id="data-longitude">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">📏</div>
+                    <div  class="depth data-card-label">Độ sâu</div>
+                    <div class="data-card-value" id="data-altitude">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">↔️</div>
+                    <div class="roll data-card-label">Góc nghiêng</div>
+                    <div class="data-card-value" id="data-roll">Loading...</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon">↕️</div>
+                    <div class="pitch data-card-label">Góc chúc</div>
+                    <div class="data-card-value" id="data-pitch">Loading...</div>
+                </div>
+              
+            </div>
+        </div>
+    </div>
+
+    <!-- Center Panel: Yacht Image -->
+    <div class="center-panel">
+        <img src="/static/image/yacht2.png" alt="Du thuyền" class="yacht-image" />
+    </div>
+
+    <!-- Right Panel: Engine and Servo Data -->
+    <div class="right-panel">
+        <div class="panel">
+         
+            <div class="engine-container space-y-4">
+                {% for i in range(1, 4) %}
+                <div class="engine-box">
+                    <h3  class="text-xl font-semibold text-gray-600 mb-2 "><a class="engine"></a> {{i}}</h3>
+                    <div class="canvas-container">
+                        <canvas id="engine{{ i }}-gauge-canvas" width="80" height="80"></canvas>
+                    </div>
+                    <div class="data-label"><span>🌀</span><span id="engine{{ i }}-rpm">Loading...</span></div>
+                    <div class="data-label"><span>🕹️</span><span id="engine{{ i }}-servo">Loading...</span></div>
+                    <div class="data-label"><span>⚡</span><span id="engine{{ i }}-power">Loading...</span></div>
+                    <div class="data-label"><span>🚨</span><span id="engine{{ i }}-status"><span id="engine{{ i }}-status-indicator" class="status-indicator"></span>Đang tải...</span></div>
+                    <div class="data-label"><span>🌡️</span><span id="engine{{ i }}-temperature">Loading...</span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

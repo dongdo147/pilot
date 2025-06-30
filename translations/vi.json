@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "title": "Hệ thống điều khiển thuyền",
+    "nav_home": "Trang chủ",
+    "nav_yacht": "Bảng điều khiển thuyền",
+    "nav_power": "Điều khiển năng lượng",
+    "nav_mission": "Quản lý nhiệm vụ",
+        "addWaypoint": "Thêm nhiệm vụ"
+  },
+  "home": {
+    "addWaypoint": "Thêm nhiệm vụ",
+    "delete":"Xóa",
+     "save_as":"Lưu vào",
+    "saveToPixhawk":"Pixhawk",
+    "saveToRaspberryPi":"Raspberrypi",
+    "missionName":"Tên Mission",
+    "confirm":"Xác nhận",
+    "close":"Đóng",
+    "YachtControl":"Hệ thống điều khiển tàu",
+    "createMission":"Tạo Missison",
+    "fetchMission":"Lấy Mission",
+    "saveMission":"Lưu",
+    "setHome":"Đặt Home",
+    "stopMission":"Dừng Misison",
+    "YachtInfo":"Thôn tin tàu",
+    "location":"Vị trí",
+    "speed":"Tốc độ",
+    "direction":"Hướng",
+    "depth":"Độ xâu",
+    "wind_speed":"Tốc độ gió",
+    "engine":"Động cơ",
+    "select":"Chọn nơi lấy",
+    "missionlist":"Danh sách mission",
+    "name":"Tên",
+    "day":"Ngày tạo",
+    "action":"Hành động"
+  },
+    "yacht":{
+    "lat":"Vĩ độ",
+    "lon":"Kinh độ",
+    "roll":"Góc nghiên ngang",
+    "pitch":"Góc nghiên dọc"
+  },
+    "power":{
+    "time-operating":"Thời gian hoạt động",
+    "remaining-time":"Thời gian còn lại",
+    "power-output":"Công suất",
+    "engine-speed":"Tốc độ động cơ",
+    "angel":"Góc xuay",
+    "auto-update":"Tự động cấp nhật",
+    "send_command":"Gửi lệnh",
+    "control":"Điều khiển"
+  }
+}

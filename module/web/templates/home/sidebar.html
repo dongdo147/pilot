@@ -1,0 +1,72 @@
+  <div class="w-1/5 bg-gray-100 p-4 border-l border-gray-300">
+        <h2 id="YachtControl" class="text-lg font-semibold mb-4 text-blue-900">Yacht Control System</h2>
+        <!-- Nút điều khiển mission -->
+       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <button id="createMission" class="createMission bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition">Tạo Mission</button>
+    <button id="fetchMission" class="fetchMission bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition">Lấy Mission</button>
+    <button id="saveMission" class="saveMission bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">Lưu Mission</button>
+    <button id="setHome" class="setHome bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">Đặt vị trí Home</button>
+    <button id="stopMission" class="stopMission bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">Dừng mission</button>
+</div>
+    <!-- Thông tin tàu trực quan -->
+        <div class="mt-6">
+            <h3 i class="YachtInfo text-md font-semibold mb-4 text-blue-900">Thông tin tàu</h3>
+            <div class="space-y-3">
+                <!-- Vị trí -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <p class="text-sm"><a class="location">Vị trí</a>: <span id="lat">---</span>, <span id="lng">---</span></p>
+                </div>
+                <!-- Tốc độ -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 4l4 4m0 0l4-4M7 8v12m10-16l4 4m0 0l-4 4m4-4H7"/>
+                    </svg>
+                    <p class="text-sm"><a class="speed">Tốc độ</a>: <span id="speed">---</span> knots</p>
+                </div>
+                <!-- Hướng đi -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                    </svg>
+                    <p  class=" text-sm"><a class="direction">Hướng đi</a>: <span id="heading">---</span>°</p>
+                </div>
+                <!-- Độ sâu nước -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.875 14.25l1.214 1.942a2.25 2.25 0 001.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 011.872 1.002l.164.246a2.25 2.25 0 001.872 1.002h2.092a2.25 2.25 0 001.872-1.002l.164-.246a2.25 2.25 0 011.872-1.002h4.636m-10.5 6V4.5"/>
+                    </svg>
+                    <p class=" text-sm"><a class="depth">Độ sâu</a>: <span id="depth">---</span> m</p>
+                </div>
+                <!-- Tốc độ gió -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1M12 21v-2.5M20 16l-2 1m2-1l-2-1m2 1v2.5M4 16l2 1m-2-1l2-1"/>
+                    </svg>
+                    <p class=" text-sm"><a class="wind_speed">Gió</a>: <span id="windSpeed">---</span> knots</p>
+                </div>
+                <!-- Trạng thái động cơ -->
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/>
+                    </svg>
+                    <p  class=" text-sm"><a class="engine ">Động cơ</a>: <span id="engineStatus">loading...</span></p>
+                </div>
+            </div>
+            <!-- La bàn -->
+            <div class="w-32 h-32 relative mx-auto mt-6">
+                <svg id="compass" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="48" stroke="#1e3a8a" stroke-width="3" fill="#f9fafb"/>
+                    <polygon id="needle" points="50,15 45,50 50,55 55,50" fill="#dc2626" />
+                    <polygon points="50,85 48,50 52,50" fill="#4b5563" />
+                    <circle cx="50" cy="50" r="5" fill="#1e3a8a" />
+                    <text x="50" y="20" text-anchor="middle" font-size="10" fill="#1e3a8a">N</text>
+                    <text x="80" y="54" text-anchor="middle" font-size="10" fill="#1e3a8a">E</text>
+                    <text x="50" y="88" text-anchor="middle" font-size="10" fill="#1e3a8a">S</text>
+                    <text x="20" y="54" text-anchor="middle" font-size="10" fill="#1e3a8a">W</text>
+                </svg>
+                <div class="text-center mt-2 text-sm text-gray-700" id="compassAngle">0°</div>
+            </div>

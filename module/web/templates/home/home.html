@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Yacht Control System{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home/home.css') }}">
+
+<div class="flex h-[90vh] bg-white rounded-none shadow-md overflow-hidden">
+    
+    <!-- Map Section and Mission Table: 4/5 width -->
+    <div class="w-4/5 flex flex-col">
+        <!-- Map -->
+        <div id="map" class="w-full flex-grow relative"></div>
+      <!-- Mission Plan Table -->
+                {% include 'home/mission_table.html' %}
+
+
+    <!-- Sidebar: 1/5 width -->
+            {% include 'home/sidebar.html' %}
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Popup for Fetch Mission -->
+    {% include 'home/fetch_mission_popup.html' %}
+
+<!-- Popup for Save Mission -->
+    {% include 'home/save_mission_popup.html' %}
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<!-- Cái này là các fution cho home -->
+<script type="module" src="{{ url_for('static', filename='js/home/home.js') }}"></script>
+
+
+{% endblock %}

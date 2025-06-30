@@ -14,17 +14,26 @@ async def database_loop():
     try:
         while True:
             await handle_get_command()
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(0.01)
     except Exception as e:
         print(f"Lỗi trong database_loop: {e}")
 
 async def pixhawk_loop():
+    master = None
+    while master is None:
+        try:
+            master = await asyncio.to_thread(pixhawk_reader.connect_pixhawk)
+            if master is None:
+                print("⛔ Pixhawk chưa kết nối. Thử lại sau 3 giây...")
+                await asyncio.sleep(3)
+        except Exception as e:
+            print(f"⚠️ Lỗi khi cố gắng kết nối Pixhawk: {e}")
+            await asyncio.sleep(3)
+
+    print("✅ Pixhawk đã kết nối.")
+    pixhawk_sending.set_master(master)
+
     try:
-        master = await asyncio.to_thread(pixhawk_reader.connect_pixhawk)
-        if master is None:
-            print("⛔ Pixhawk chưa kết nối. Dừng luồng Pixhawk.")
-            return
-        pixhawk_sending.set_master(master)
         while True:
             data = await asyncio.to_thread(pixhawk_reader.read_data, master)
             if data:
@@ -32,6 +41,7 @@ async def pixhawk_loop():
             await asyncio.sleep(0.01)
     except Exception as e:
         print(f"💥 Lỗi trong Pixhawk loop: {e}")
+
 
 async def humminbird_loop():
     humminbird = await asyncio.to_thread(connect_humminbird)

@@ -1,0 +1,21 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+.leaflet-container {
+    background-color: #e0f2fe; /* Màu nền bản đồ giống biển */
+}
+.leaflet-control {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+#map {
+    height: 70%; /* Giảm chiều cao bản đồ để chừa chỗ cho bảng */
+}
+#fetchMissionPopup, #saveMissionPopup {
+    z-index: 1000; /* Ensure popup is above map */
+}
+#fetchMissionPopup .bg-white, #saveMissionPopup .bg-white {
+    max-height: 80vh;
+    overflow-y: auto;
+}

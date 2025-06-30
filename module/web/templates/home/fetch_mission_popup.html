@@ -1,0 +1,26 @@
+<div id="fetchMissionPopup" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+        <h3 class="text-lg font-semibold mb-4 text-blue-900 select">Chọn nguồn mission</h3>
+        <div class="flex space-x-4 mb-4">
+            <button id="fetchFromPixhawk" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 fetchFromPixhawk">Lấy từ Pixhawk</button>
+            <button id="fetchFromRaspberryPi" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 fetchFromRaspberryPi">Lấy từ Raspberry Pi</button>
+        </div>
+        <!-- Mission List Table (shown when Raspberry Pi is selected) -->
+        <div id="missionList" class="hidden">
+            <h4 id="missionlist" class="text-md font-semibold mb-2 text-blue-900 missionlist">Danh sách mission</h4>
+            <table class="min-w-full bg-white border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200 text-blue-900">
+                        <th  class="py-2 px-3 text-left text-xs font-semibold name">Tên Mission</th>
+                        <th  class="py-2 px-3 text-left text-xs font-semibold day">Ngày tạo</th>
+                        <th  class="py-2 px-3 text-left text-xs font-semibold action">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="missionListBody" class="text-sm text-gray-700">
+                    <!-- Sample mission data will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <button id="closePopup" class="mt-4 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 close">Đóng</button>
+    </div>
+</div>

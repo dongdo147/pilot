@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Mission Manager{% endblock %}
+
+{% block head %}
+<script>
+   async function fetchMissions() {
+    try {
+        const response = await fetch('/mission-manager');
+        const data = await response.json();
+
+        const missionList = document.getElementById('mission-list');
+        missionList.innerHTML = '';
+
+        // Nếu dữ liệu từ server có 'waypoints' và không rỗng, dùng nó. Ngược lại, dùng mẫu.
+        const missions = data.waypoints;
+            
+
+        missions.forEach(mission => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="py-2 px-4">${mission.filename}</td>
+                <td class="py-2 px-4">${mission.created_at}</td>
+                <td class="py-2 px-4">
+                    <button onclick="viewMission('${mission.filename}')" class="text-blue-600 hover:underline">View</button>
+                    <a href="/mission-manager/download/${mission.filename}" class="text-blue-600 hover:underline ml-2">Download</a>
+                    <button onclick="deleteMission('${mission.filename}')" class="text-red-600 hover:underline ml-2">Delete</button>
+                </td>
+            `;
+            missionList.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error fetching missions:', error);
+
+        // Nếu lỗi khi fetch server, dùng dữ liệu mẫu luôn
+        const missionList = document.getElementById('mission-list');
+        missionList.innerHTML = '';
+        const sampleMissions = [
+            {
+                filename: 'demo1.json',
+                created_at: '2024-06-01 10:00'
+            },
+            {
+                filename: 'demo2.json',
+                created_at: '2024-06-02 14:30'
+            },
+            {
+                filename: 'demo3.json',
+                created_at: '2024-06-03 09:45'
+            }
+        ];
+        sampleMissions.forEach(mission => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="py-2 px-4">${mission.filename}</td>
+                <td class="py-2 px-4">${mission.created_at}</td>
+                <td class="py-2 px-4">
+                    <button onclick="viewMission('${mission.filename}')" class="text-blue-600 hover:underline">View</button>
+                    <a href="/mission-manager/download/${mission.filename}" class="text-blue-600 hover:underline ml-2">Download</a>
+                    <button onclick="deleteMission('${mission.filename}')" class="text-red-600 hover:underline ml-2">Delete</button>
+                </td>
+            `;
+            missionList.appendChild(row);
+        });
+    }
+}
+
+
+    async function viewMission(filename) {
+        try {
+            const response = await fetch(`/mission-manager/${filename}`);
+            const data = await response.json();
+            const details = document.getElementById('mission-details');
+            details.innerHTML = `<pre class="bg-gray-50 p-4 rounded-md text-sm text-gray-600">${JSON.stringify(data.data, null, 2)}</pre>`;
+        } catch (error) {
+            alert('Error viewing mission: ' + error);
+        }
+    }
+
+    async function deleteMission(filename) {
+        if (!confirm(`Bạn có chắc là muốn xóa ${filename} chứ?`)) return;
+        try {
+            const response = await fetch(`/mission-manager/${filename}`, { method: 'DELETE' });
+            const result = await response.json();
+            alert(result.message);
+            fetchMissions(); // Refresh the list
+        } catch (error) {
+            alert('Error deleting mission: ' + error);
+        }
+    }
+
+    async function uploadMission(event) {
+        event.preventDefault();
+        const waypointsInput = document.getElementById('waypoints-file');
+        const file = waypointsInput.files[0];
+        if (!file) {
+            alert('Please select a file');
+            return;
+        }
+        try {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const waypoints = JSON.parse(e.target.result).waypoints;
+                const response = await fetch('/mission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ waypoints })
+                });
+                const result = await response.json();
+                alert(result.message);
+                fetchMissions(); // Refresh the list
+            };
+            reader.readAsText(file);
+        } catch (error) {
+            alert('Error uploading mission: ' + error);
+        }
+    }
+
+    // Fetch missions on page load
+    window.onload = fetchMissions;
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">Mission Manager</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Upload New Mission</h2>
+        <form onsubmit="event.preventDefault(); uploadMission(event);" class="space-y-4">
+            <div>
+                <label for="waypoints-file" class="block text-sm font-medium text-gray-700">Select Waypoint File (JSON):</label>
+                <input type="file" id="waypoints-file" accept=".json" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Upload Mission</button>
+        </form>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Mission Files</h2>
+        <table class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700">Filename</th>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700">Created At</th>
+                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="mission-list" class="divide-y divide-gray-200">
+                <!-- Mission list populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="mission-details" class="bg-white p-6 rounded-lg shadow-md hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Mission Details</h2>
+        <!-- Mission details populated by JavaScript -->
+    </div>
+</div>
+{% endblock %}

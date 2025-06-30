@@ -1,0 +1,16 @@
+<div id="saveMissionPopup" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
+        <h3 class="save_as text-lg font-semibold mb-4 text-blue-900">Chọn nơi lưu mission</h3>
+        <div class="flex space-x-4 mb-4">
+            <button id="saveToPixhawk" class="saveToPixhawk bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">Lưu vào Pixhawk</button>
+            <button id="saveToRaspberryPi" class="saveToRaspberryPi bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">Lưu vào Raspberry Pi</button>
+        </div>
+        <!-- Mission Name Input (shown when Raspberry Pi is selected) -->
+        <div id="missionNameInput" class="hidden mb-4">
+            <label for="missionName" class="missionName block text-sm font-medium text-blue-900">Tên Mission</label>
+            <input type="text" id="missionName" class="w-full border rounded px-2 py-1 mt-1" placeholder="Nhập tên mission">
+            <button id="confirmSaveToRaspberryPi" class="confirm mt-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">Xác nhận lưu</button>
+        </div>
+        <button id="closeSavePopup" class="close mt-4 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">Đóng</button>
+    </div>
+</div>

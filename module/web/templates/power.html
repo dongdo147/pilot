@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Power Control{% endblock %}
+
+{% block head %}
+<script>
+    // Hàm ánh xạ góc xoay (0-180 độ) thành PWM (1000-2000)
+    function angleToPWM(angle) {
+        return Math.round(1000 + (angle / 180) * 1000);
+    }
+
+    // Hàm ánh xạ % throttle (0-100) thành PWM (1000-2000)
+    function throttleToPWM(throttle) {
+        return Math.round(1000 + (throttle / 100) * 1000);
+    }
+
+    // Hàm gửi PWM cho động cơ và servo
+    async function sendPWM(motorChannel, throttle, servoChannel, servoAngle) {
+        const motorPWM = throttleToPWM(throttle);
+        const servoPWM = angleToPWM(servoAngle);
+        try {
+            const response = await fetch('/api/send_pwm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([
+                    { channel: parseInt(motorChannel), pwm: motorPWM },
+                    { channel: parseInt(servoChannel), pwm: servoPWM }
+                ])
+            });
+            const result = await response.json();
+            console.log(`PWM Command Sent: ${result.status}`);
+        } catch (error) {
+            console.error('Error sending PWM:', error);
+        }
+    }
+
+    // Hàm gửi lệnh Arm
+    async function sendArmCommand() {
+        try {
+            const response = await fetch('/api/send_arm_command', { method: 'POST' });
+            const result = await response.json();
+            alert(`Arm Command: ${result.status}`);
+        } catch (error) {
+            alert('Error sending arm command: ' + error);
+        }
+    }
+
+    // Hàm cập nhật nhãn slider
+    function updateLabel(id, value) {
+        document.getElementById(id).textContent = value;
+    }
+function drawControlGauge(canvasId, throttle, angle) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Vẽ vòng cung nền (màu xám)
+    ctx.beginPath();
+    ctx.arc(50, 50, 40, Math.PI, 2 * Math.PI, false);
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.stroke();
+
+    // Vẽ vòng cung throttle (màu xanh dương)
+    ctx.beginPath();
+    const startAngle = Math.PI;
+    const endAngle = Math.PI + (throttle / 100) * Math.PI;
+    ctx.arc(50, 50, 40, startAngle, endAngle, false);
+    ctx.strokeStyle = '#3b82f6';
+    ctx.stroke();
+
+    // Vẽ biểu tượng động cơ đẩy tại đầu kim
+    ctx.save();
+    ctx.translate(50, 50); // Di chuyển tâm tọa độ đến trung tâm canvas
+    ctx.rotate(Math.PI * angle / 180); // Xoay theo góc servo
+
+    // Vẽ thân động cơ (hình chữ nhật thon dài, hơi thuôn nhọn ở đầu)
+    ctx.beginPath();
+    ctx.moveTo(35 - 4, -8); // Đầu động cơ (nhọn hơn)
+    ctx.lineTo(35 + 8, -6); // Phía trên thân
+    ctx.lineTo(35 + 8, 6);  // Phía dưới thân
+    ctx.lineTo(35 - 4, 8);  // Đầu dưới động cơ
+    ctx.closePath();
+    ctx.fillStyle = '#22c55e'; // Màu xanh lá cho thân động cơ
+    ctx.fill();
+    ctx.strokeStyle = '#4b5563'; // Viền xám
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Vẽ cánh quạt (thẳng hàng với kim, mô phỏng cánh quạt động cơ đẩy)
+    const bladeWidth = 10;
+    const bladeHeight = 3;
+    ctx.fillStyle = '#22c55e'; // Màu xanh lá
+    // Cánh quạt trên
+    ctx.fillRect(35 - bladeWidth / 2, -12 - bladeHeight, bladeWidth, bladeHeight);
+    // Cánh quạt dưới
+    ctx.fillRect(35 - bladeWidth / 2, 12, bladeWidth, bladeHeight);
+
+    // Vẽ luồng khí phía sau (mô phỏng phản lực)
+    ctx.beginPath();
+    ctx.moveTo(35 + 8, -4); // Bắt đầu từ đuôi động cơ
+    ctx.lineTo(35 + 14, -6); // Luồng khí thuôn ra ngoài
+    ctx.lineTo(35 + 14, 6);
+    ctx.lineTo(35 + 8, 4);
+    ctx.closePath();
+    ctx.fillStyle = '#60a5fa'; // Màu xanh nhạt cho luồng khí
+    ctx.fill();
+
+    // Vẽ chi tiết mũi động cơ (hình tròn nhỏ)
+    ctx.beginPath();
+    ctx.arc(35 - 4, 0, 2, 0, 2 * Math.PI); // Vòng tròn ở đầu động cơ
+    ctx.fillStyle = '#4b5563'; // Màu xám cho chi tiết
+    ctx.fill();
+
+    ctx.restore();
+
+    // Vẽ kim (tùy chọn, giữ để dễ hình dung)
+    ctx.beginPath();
+    ctx.moveTo(50, 50);
+    const radian = Math.PI * angle / 180;
+    const needleLength = 35;
+    const endX = 50 + needleLength * Math.cos(radian);
+    const endY = 50 + needleLength * Math.sin(radian);
+    ctx.lineTo(endX, endY);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#22c55e'; // Màu xanh lá cho kim
+    ctx.stroke();
+
+    // Vẽ tâm đồng hồ
+    ctx.beginPath();
+    ctx.arc(50, 50, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = '#374151'; // Màu xám đậm
+    ctx.fill();
+}
+    // Cập nhật nhãn và gauge cho motor và servo
+    function updateControlGauge(motorId, throttle, servoId, angle) {
+        updateLabel(`motor${motorId}-label`, throttle);
+        updateLabel(`servo${servoId}-label`, angle);
+        drawControlGauge(`control${motorId}-canvas`, throttle, angle);
+    }
+
+    // Cập nhật thông số pin và các thông tin khác
+    async function updateShipInfo() {
+        try {
+            const response = await fetch('/api/ship-info');
+            const data = await response.json();
+            document.getElementById('battery').textContent = data.battery?.toFixed(0) || '85';
+            document.getElementById('battery-bar').style.width = `${data.battery || 85}%`;
+            document.getElementById('used-time').textContent = data.usedTime || '1h 25m';
+            document.getElementById('remaining-time').textContent = data.remainingTime || '2h 40m';
+            document.getElementById('power-output').textContent = data.powerOutput?.toFixed(1) || '36.5';
+        } catch (error) {
+            console.error('Error updating ship info:', error);
+        }
+    }
+
+    // Khởi tạo
+    document.addEventListener('DOMContentLoaded', () => {
+        updateShipInfo();
+        setInterval(updateShipInfo, 1000); // Cập nhật mỗi giây
+
+        for (let i = 1; i <= 3; i++) {
+            const motorInput = document.getElementById(`motor${i}-throttle`);
+            const servoInput = document.getElementById(`servo${i + 3}-angle`);
+            const autoSwitch = document.getElementById(`auto-send-${i}`);
+
+            // Vẽ gauge ban đầu
+            drawControlGauge(`control${i}-canvas`, motorInput.value, servoInput.value);
+
+            motorInput.addEventListener('input', () => {
+                updateControlGauge(i, motorInput.value, i + 3, servoInput.value);
+                if (autoSwitch.checked) {
+                    sendPWM(i, motorInput.value, i + 3, servoInput.value);
+                }
+            });
+            servoInput.addEventListener('input', () => {
+                updateControlGauge(i, motorInput.value, i + 3, servoInput.value);
+                if (autoSwitch.checked) {
+                    sendPWM(i, motorInput.value, i + 3, servoInput.value);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-8 bg-gray-50 min-h-[90vh]">
+    
+
+    <!-- THÔNG TIN PIN VÀ THÔNG SỐ -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Battery -->
+        <div class="bg-white shadow p-4 rounded-lg flex items-center space-x-4">
+            <svg class="w-16 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="6" width="26.5" height="12" rx="2" stroke-width="2"/>
+                <rect id="battery-bar" x="4" y="7" width="100%" height="10" fill="#22c55e"/>
+                <rect x="30" y="9" width="2" height="6" fill="currentColor"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-500">Pin</p>
+                <p class="text-xl font-semibold text-green-600" id="battery">85%</p>
+            </div>
+        </div>
+        <!-- Used Time -->
+        <div class="bg-white shadow p-4 rounded-lg flex items-center space-x-4">
+            <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <path d="M12 6v6l4 2" stroke-width="2"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-500 time-operating">Thời gian hoạt động</p>
+                <p class="text-xl font-semibold" id="used-time">1h 25m</p>
+            </div>
+        </div>
+        <!-- Estimated Remaining -->
+        <div class="bg-white shadow p-4 rounded-lg flex items-center space-x-4">
+            <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <path d="M12 6v6l-4 2" stroke-width="2"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-500 remaining-time">Thời gian còn lại</p>
+                <p class="text-xl font-semibold" id="remaining-time">2h 40m</p>
+            </div>
+        </div>
+        <!-- Total Power Output -->
+        <div class="bg-white shadow p-4 rounded-lg flex items-center space-x-4">
+            <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-500 power-output">Công suất hiện tại</p>
+                <p class="text-xl font-semibold text-red-600" id="power-output">36.5W</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ĐIỀU KHIỂN MOTOR & SERVO -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for motor, servo in [(1, 4), (2, 5), (3, 6)] %}
+        <div class="bg-white shadow p-4 rounded-lg">
+            <h2 class="text-lg font-semibold text-blue-900 mb-4"><a class="engine">Động cơ</a> {{ motor }} </h2>
+            
+            <!-- Motor Throttle -->
+            <div class="mb-4">
+                <label class="flex items-center text-sm font-medium text-gray-700">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2"/>
+                    </svg>
+                    <a class="engine-speed">Tốc độ động cơ: </a><span id="motor{{ motor }}-label" class="ml-2">50</span>%
+                </label>
+                <div class="flex items-center">
+                    <input type="range" id="motor{{ motor }}-throttle" min="0" max="100" value="50"
+                           class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer mt-2 mr-4">
+                </div>
+            </div>
+            
+            <!-- Servo Angle -->
+            <div class="mb-4">
+                <label class="flex items-center text-sm font-medium text-gray-700">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2a10 10 0 00-7.07 17.07m14.14 0A10 10 0 0012 2" stroke-width="2"/>
+                        <path d="M12 6v6l4 2" stroke-width="2"/>
+                    </svg>
+                    <a class="angle">Góc xoay:</a> <span id="servo{{ servo }}-label" class="ml-2">90</span>°
+                </label>
+                <div class="flex items-center">
+                    <input type="range" id="servo{{ servo }}-angle" min="0" max="180" value="90"
+                           class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer mt-2 mr-4">
+                </div>
+            </div>
+
+            <!-- Canvas chung cho motor và servo -->
+            <div class="flex justify-center">
+                <canvas id="control{{ motor }}-canvas" width="100" height="100"></canvas>
+            </div>
+
+            <!-- Switch Auto Send -->
+            <div class="flex items-center gap-4 mt-4">
+                <label class="text-sm font-medium text-gray-700 auto-update">Tự động cập nhật</label>
+                <input type="checkbox" id="auto-send-{{ motor }}"
+                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                  
+            </div>
+              <button class="send_command">Gửi lệnh</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ARM COMMAND -->
+    <div class="bg-white p-6 rounded-lg shadow-md text-center max-w-sm mx-auto">
+    <h2 class="text-xl font-semibold text-blue-900 mb-6 control">Điều khiển</h2>
+    <div class="flex justify-center gap-4">
+        <button 
+            onclick="sendArmCommand()" 
+            class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition shadow">
+            Arm
+        </button>
+        <button 
+            onclick="sendDisarmCommand()" 
+            class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 transition shadow">
+            Disarm
+        </button>
+    </div>
+</div>
+
+</div>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        background: #1e40af;
+    }
+    input[type="range"]::-moz-range-thumb {
+        background: #1e40af;
+    }
+    .flex.items-center canvas {
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}

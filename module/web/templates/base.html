@@ -1,36 +1,38 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Trang của Ní{% endblock %}</title>
-    
-    <!-- Liên kết file CSS -->
-    <link rel="stylesheet" href="../static/css/base.css">
+    <title>{% block title %}Yacht Control System{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="../static/css/tailwindcss/tainwind.js"></script>
+    {% block head %}{% endblock %}
 </head>
-<body>
-
-    <!-- Navbar -->
-    <nav>
-        <div class="logo">MÁP</div>
-        <div class="nav-links">
-            <a href="/">Trang chủ</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/control">Điều khiển</a>
-        </div>
+<body class="bg-gray-100 font-sans">
+        <nav class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-lg font-bold" id="title">Yacht Control</a>
+            <div class="space-x-4">
+                <a href="/"  class="hover:underline nav_home">Home</a>
+                <a href="/yacht"  class="hover:underline nav_yacht">Yacht Dashboard</a>
+                <a href="/power"  class="hover:underline nav_power">Power Control</a>
+                <a href="/mission-manager" class="hover:underline nav_mission">Mission Manager</a>
+   
+            <select id="langSelect" class="ml-4 text-black px-2 py-1 rounded">
+                <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
+            </select>
+     
     </nav>
 
-    <!-- Nội dung chính -->
-    <main>
-        {% block content %}
-        <!-- Nội dung page sẽ render tại đây -->
-        {% endblock %}
-    </main>
+ <div class="p-6 w-full">
+    {% block content %}
+    {% endblock %}
+</div>
+<script type="module" src="{{ url_for('static', filename='js/base/initLangs.js') }}"></script>
 
-    <!-- Footer -->
-    <footer>
-        <p>© 2025 ní hảo ma 🤙</p>
-    </footer>
+
 
 </body>
 </html>
